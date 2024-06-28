@@ -1,23 +1,23 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const activityController = require('./controller');
+const activityController = require("./controller");
 
 // Create a new daily activity
-router.post('/', activityController.createDailyActivity);
+router.post("/", activityController.createDailyActivity);
 
 // Get all activities
-router.get('/', activityController.getAllActivities);
+router.get("/", activityController.getAllActivities);
 
 // Get activities for the last 30 days
-router.get('/last30days', activityController.getLast30DaysActivities);
+router.get("/last30days", activityController.getLast30DaysActivities);
 
 // Get today's activity
-router.get('/today/:warehouseId', activityController.getTodaysActivity);
+router.get("/today", activityController.getTodaysActivity);
 
-// Update an activity by ID
-router.put('/:id', activityController.updateActivityById);
+// Update an activity by ID or today's activity if no ID is provided
+router.put('/:id?', activityController.updateActivityById);
 
-// Delete an activity by ID
-router.delete('/:id', activityController.deleteActivityById);
+// Delete an activity by ID or today's activity if no ID is provided
+router.delete('/:id?', activityController.deleteActivityById);
 
 module.exports = router;

@@ -1,27 +1,19 @@
-// models/DailyActivity.js
-
 const mongoose = require('mongoose');
 
 const dailyActivitySchema = new mongoose.Schema({
-    warehouse: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Warehouse',
-        required: true
-    },
     date: {
         type: Date,
         required: true,
-        unique: true,
-        default: Date.now
+        unique: true // Ensure one entry per day for all warehouses
     },
     remainder: {
-        type: String,
+        type: Number,
         required: true
     },
     accepted: {
-        type: String,
+        type: Number,
         required: true,
-        default: '0'
+        default: 0
     }
 }, {
     timestamps: true,
@@ -29,6 +21,6 @@ const dailyActivitySchema = new mongoose.Schema({
     strictQuery: false
 });
 
-const DailyActivity = mongoose.model('DailyActivity', dailyActivitySchema);
+const DailyActivity = mongoose.model('DailyActivityWarehouse', dailyActivitySchema);
 
 module.exports = DailyActivity;

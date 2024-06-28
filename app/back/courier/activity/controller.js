@@ -4,7 +4,33 @@ const Courier = require('../model');
 // Create a new daily activity
 exports.createDailyActivity = async (req, res) => {
     try {
-        const activity = new DailyActivity(req.body);
+        const { courier } = req.body;
+        const date = new Date();
+
+        // Ensure the date is stripped of time for comparison
+        const startOfDay = new Date(date);
+        if (isNaN(startOfDay.getTime())) {
+            return res.status(400).json({ message: "❌ Invalid date format." });
+        }
+        startOfDay.setHours(0, 0, 0, 0);
+
+        // Check if an activity already exists for the given courier and date
+        const existingActivity = await DailyActivity.findOne({ 
+            courier: courier, 
+            date: startOfDay 
+        });
+
+        if (existingActivity) {
+            return res
+              .status(400)
+              .json({
+                message:
+                  "❌ Activity for this courier on the given date already exists.",
+              });
+        }
+
+        // Create new daily activity
+        const activity = new DailyActivity({ ...req.body, date: startOfDay });
         await activity.save();
         res.status(201).json(activity);
     } catch (error) {
@@ -12,10 +38,11 @@ exports.createDailyActivity = async (req, res) => {
     }
 };
 
+
 // Get all activities
 exports.getAllActivities = async (req, res) => {
     try {
-        const activities = await DailyActivity.find().populate('courier');
+        const activities = await DailyActivity.find();
         res.status(200).json(activities);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -29,7 +56,7 @@ exports.getLast30DaysActivities = async (req, res) => {
             date: {
                 $gte: new Date(new Date().setDate(new Date().getDate() - 30))
             }
-        }).populate('courier');
+        });
         res.status(200).json(activities);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -43,7 +70,7 @@ exports.getTodaysActivity = async (req, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        let activity = await DailyActivity.findOne({ courier: courierId, date: today }).populate('courier');
+        let activity = await DailyActivity.findOne({ courier: courierId, date: today });
         
         if (!activity) {
             activity = await createTodaysActivity(courierId);
@@ -74,8 +101,8 @@ const createTodaysActivity = async (courierId) => {
 // Update an activity by ID
 exports.updateActivityById = async (req, res) => {
     try {
-        const activity = await DailyActivity.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate('courier');
-        if (!activity) return res.status(404).json({ message: 'Activity not found' });
+        const activity = await DailyActivity.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        if (!activity) return res.status(404).json({ message: '❌ Activity not found' });
         res.status(200).json(activity);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -86,8 +113,8 @@ exports.updateActivityById = async (req, res) => {
 exports.deleteActivityById = async (req, res) => {
     try {
         const activity = await DailyActivity.findByIdAndDelete(req.params.id);
-        if (!activity) return res.status(404).json({ message: 'Activity not found' });
-        res.status(200).json({ message: 'Activity deleted successfully' });
+        if (!activity) return res.status(404).json({ message: "❌ Activity not found" });
+        res.status(200).json({ message: "✅ Activity deleted successfully" });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

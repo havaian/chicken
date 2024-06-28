@@ -9,8 +9,6 @@ const dailyBuyerActivitySchema = new mongoose.Schema({
   date: {
     type: Date,
     required: true,
-    unique: true, // Ensure one entry per day per buyer
-    default: Date.now // Default to the current date
   },
   debt: {
     type: Number,
@@ -29,6 +27,9 @@ const dailyBuyerActivitySchema = new mongoose.Schema({
   strictQuery: false 
 });
 
-const DailyBuyerActivity = mongoose.model('DailyBuyerActivity', dailyBuyerActivitySchema);
+const DailyBuyerActivity = mongoose.model(
+  "DailyActivityBuyer",
+  dailyBuyerActivitySchema
+);
 
 module.exports = DailyBuyerActivity;

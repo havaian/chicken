@@ -3,11 +3,13 @@ const mongoose = require('mongoose');
 const warehouseSchema = new mongoose.Schema({
   full_name: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   phone_num: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
 },
   {

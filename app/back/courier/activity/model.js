@@ -9,8 +9,6 @@ const dailyActivitySchema = new mongoose.Schema({
   date: {
       type: Date,
       required: true,
-      unique: true, // Ensure one entry per day per courier
-      default: Date.now // Default to the current date
   },
   remained: {
       type: Number,
@@ -36,6 +34,6 @@ const dailyActivitySchema = new mongoose.Schema({
   strictQuery: false 
 });
 
-const DailyActivity = mongoose.model('DailyActivity', dailyActivitySchema);
+const DailyActivity = mongoose.model('DailyActivityCourier', dailyActivitySchema);
 
 module.exports = DailyActivity;
