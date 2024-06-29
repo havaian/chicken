@@ -24,7 +24,7 @@ exports.getAllWarehouses = async (req, res) => {
 // Get a single warehouse by ID
 exports.getWarehouseById = async (req, res) => {
     try {
-        const warehouse = await Warehouse.findById(req.params.id);
+        const warehouse = await Warehouse.findOne({ phone_num: req.params.id });
         if (!warehouse) return res.status(404).json({ message: "❌ Warehouse not found" });
         res.status(200).json(warehouse);
     } catch (error) {
@@ -35,7 +35,7 @@ exports.getWarehouseById = async (req, res) => {
 // Update a warehouse by ID
 exports.updateWarehouseById = async (req, res) => {
     try {
-        const warehouse = await Warehouse.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const warehouse = await Warehouse.findOneAndUpdate({ phone_num: req.params.id }, req.body, { new: true, runValidators: true });
         if (!warehouse) return res.status(404).json({ message: "❌ Warehouse not found" });
         res.status(200).json(warehouse);
     } catch (error) {
@@ -46,7 +46,7 @@ exports.updateWarehouseById = async (req, res) => {
 // Delete a warehouse by ID
 exports.deleteWarehouseById = async (req, res) => {
     try {
-        const warehouse = await Warehouse.findByIdAndDelete(req.params.id);
+        const warehouse = await Warehouse.findOneAndDelete({ phone_num: req.params.id });
         if (!warehouse) return res.status(404).json({ message: "❌ Warehouse not found" });
         res.status(200).json({ message: "✅ Warehouse deleted successfully" });
     } catch (error) {

@@ -9,7 +9,7 @@ const cron = require('./activity/cron');
 router.use('/activity', activityRoutes);
 
 // Create a new warehouse
-router.post('/', warehouseController.createWarehouse);
+router.post('/new/', warehouseController.createWarehouse);
 
 // Get all warehouses
 router.get('/', warehouseController.getAllWarehouses);

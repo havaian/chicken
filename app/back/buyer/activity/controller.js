@@ -41,7 +41,11 @@ exports.createDailyActivity = async (req, res) => {
 // Get all activities
 exports.getAllActivities = async (req, res) => {
     try {
-        const activities = await DailyBuyerActivity.find();
+        const options = {};
+        if (req.params.buyerId) {
+            options.buyer = req.params.buyerId
+        }
+        const activities = await DailyBuyerActivity.find(options);
         res.status(200).json(activities);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -51,11 +55,15 @@ exports.getAllActivities = async (req, res) => {
 // Get activities for the last 30 days
 exports.getLast30DaysActivities = async (req, res) => {
     try {
-        const activities = await DailyBuyerActivity.find({
+        const options = {
             date: {
                 $gte: new Date(new Date().setDate(new Date().getDate() - 30))
             }
-        });
+        };
+        if (req.params.buyerId) {
+            options.buyer = req.params.buyerId
+        }
+        const activities = await DailyBuyerActivity.find(options);
         res.status(200).json(activities);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -68,8 +76,16 @@ exports.getTodaysActivity = async (req, res) => {
         const { buyerId } = req.params;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const options = {
+            date: {
+                $gte: new Date(new Date().setDate(new Date().getDate() - 30))
+            }
+        };
+        if (buyerId) {
+            options.buyer = buyerId
+        }
 
-        let activity = await DailyBuyerActivity.findOne({ buyer: buyerId, date: today });
+        let activity = await DailyBuyerActivity.findOne(options);
         
         if (!activity) {
             activity = await createTodaysActivity(buyerId);

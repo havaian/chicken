@@ -3,10 +3,10 @@ const router = express.Router();
 const activityController = require("./controller");
 
 // Create a new daily activity
-router.post("/", activityController.createDailyActivity);
+router.post('/new/', activityController.createDailyActivity);
 
 // Get all activities
-router.get("/", activityController.getAllActivities);
+router.get("/all", activityController.getAllActivities);
 
 // Get activities for the last 30 days
 router.get("/last30days", activityController.getLast30DaysActivities);

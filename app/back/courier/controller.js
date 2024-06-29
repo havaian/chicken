@@ -24,7 +24,7 @@ exports.getAllCouriers = async (req, res) => {
 // Get a single courier by ID
 exports.getCourierById = async (req, res) => {
     try {
-        const courier = await Courier.findById(req.params.id);
+        const courier = await Courier.findOne({ phone_num: req.params.id });
         if (!courier) return res.status(404).json({ message: "❌ Courier not found" });
         res.status(200).json(courier);
     } catch (error) {
@@ -35,7 +35,7 @@ exports.getCourierById = async (req, res) => {
 // Update a courier by ID
 exports.updateCourierById = async (req, res) => {
     try {
-        const courier = await Courier.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const courier = await Courier.findOneAndUpdate({ phone_num: req.params.id }, req.body, { new: true, runValidators: true });
         if (!courier) return res.status(404).json({ message: "❌ Courier not found" });
         res.status(200).json(courier);
     } catch (error) {
@@ -46,7 +46,7 @@ exports.updateCourierById = async (req, res) => {
 // Delete a courier by ID
 exports.deleteCourierById = async (req, res) => {
     try {
-        const courier = await Courier.findByIdAndDelete(req.params.id);
+        const courier = await Courier.findOneAndDelete({ phone_num: req.params.id });
         if (!courier) return res.status(404).json({ message: "❌ Courier not found" });
         res.status(200).json({ message: "✅ Courier deleted successfully" });
     } catch (error) {

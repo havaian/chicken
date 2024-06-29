@@ -24,7 +24,7 @@ exports.getAllBuyers = async (req, res) => {
 // Get a single buyer by ID
 exports.getBuyerById = async (req, res) => {
     try {
-        const buyer = await Buyer.findById(req.params.id);
+        const buyer = await Buyer.findOne({ $or: [{ full_name: req.params.id }, { phone_num: req.params.id }]});
         if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
         res.status(200).json(buyer);
     } catch (error) {
@@ -35,7 +35,7 @@ exports.getBuyerById = async (req, res) => {
 // Update a buyer by ID
 exports.updateBuyerById = async (req, res) => {
     try {
-        const buyer = await Buyer.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const buyer = await Buyer.findOneAndUpdate({ phone_num: req.params.id }, req.body, { new: true, runValidators: true });
         if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
         res.status(200).json(buyer);
     } catch (error) {
@@ -46,7 +46,7 @@ exports.updateBuyerById = async (req, res) => {
 // Delete a buyer by ID
 exports.deleteBuyerById = async (req, res) => {
     try {
-        const buyer = await Buyer.findByIdAndDelete(req.params.id);
+        const buyer = await Buyer.findOneAndDelete({ phone_num: req.params.id });
         if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
         res.status(200).json({ message: "✅ Buyer deleted successfully" });
     } catch (error) {

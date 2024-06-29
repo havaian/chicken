@@ -9,10 +9,10 @@ const cron = require('./activity/cron');
 router.use('/activity', activityRoutes);
 
 // Create a new courier
-router.post('/', courierController.createCourier);
+router.post('/new/', courierController.createCourier);
 
 // Get all couriers
-router.get('/', courierController.getAllCouriers);
+router.get('/all', courierController.getAllCouriers);
 
 // Get a single courier by ID
 router.get('/:id', courierController.getCourierById);

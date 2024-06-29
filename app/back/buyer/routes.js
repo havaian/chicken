@@ -9,10 +9,10 @@ const cron = require('./activity/cron');
 router.use('/activity', activityRoutes);
 
 // Create a new buyer
-router.post('/', buyerController.createBuyer);
+router.post('/new/', buyerController.createBuyer);
 
 // Get all buyers
-router.get('/', buyerController.getAllBuyers);
+router.get('/all', buyerController.getAllBuyers);
 
 // Get a single buyer by ID
 router.get('/:id', buyerController.getBuyerById);
