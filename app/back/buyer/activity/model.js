@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const dailyBuyerActivitySchema = new mongoose.Schema({
   buyer: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Buyer',
     required: true
   },
@@ -27,9 +27,6 @@ const dailyBuyerActivitySchema = new mongoose.Schema({
   strictQuery: false 
 });
 
-const DailyBuyerActivity = mongoose.model(
-  "DailyActivityBuyer",
-  dailyBuyerActivitySchema
-);
+const DailyBuyerActivity = mongoose.model("DailyActivityBuyer", dailyBuyerActivitySchema);
 
 module.exports = DailyBuyerActivity;

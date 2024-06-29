@@ -11,6 +11,9 @@ router.use('/activity', activityRoutes);
 // Create a new buyer
 router.post('/new/', buyerController.createBuyer);
 
+// Route to find closest location
+router.post('/closest-location', buyerController.findClosestLocation);
+
 // Get all buyers
 router.get('/all', buyerController.getAllBuyers);
 

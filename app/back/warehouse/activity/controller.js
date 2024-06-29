@@ -89,12 +89,18 @@ const createTodaysActivity = async () => {
 exports.updateActivityById = async (req, res) => {
     try {
         let activity;
+        
         if (req.params.id) {
+            const today = req.body.date;
+            today.setHours(0, 0, 0, 0);
+            req.body.date = today;
+
             activity = await DailyActivity.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
             if (!activity) return res.status(404).json({ message: "❌ Activity not found" });
         } else {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
+            req.body.date = today;
             activity = await DailyActivity.findOneAndUpdate({ date: today }, req.body, { new: true, runValidators: true });
             if (!activity) return res.status(404).json({ message: "❌ Today's activity not found" });
         }

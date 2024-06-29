@@ -114,8 +114,19 @@ const createTodaysActivity = async (buyerId) => {
 // Update an activity by ID
 exports.updateActivityById = async (req, res) => {
     try {
-        const activity = await DailyBuyerActivity.findOneAndUpdate({ buyer: req.params.id }, req.body, { new: true, runValidators: true });
-        if (!activity) return res.status(404).json({ message: "❌ Activity not found" });
+        const { id } = req.params;
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        req.body.date = today;
+
+        const activity = await DailyBuyerActivity.findByIdAndUpdate(
+          id,
+          req.body,
+          { new: true, runValidators: true }
+        );
+        if (!activity)
+          return res.status(404).json({ message: "❌ Activity not found" });
         res.status(200).json(activity);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -125,10 +136,21 @@ exports.updateActivityById = async (req, res) => {
 // Delete an activity by ID
 exports.deleteActivityById = async (req, res) => {
     try {
-        const activity = await DailyBuyerActivity.findOneAndDelete({ buyer: req.params.id });
-        if (!activity) return res.status(404).json({ message: "❌ Activity not found" });
-        res.status(200).json({ message: "✅ Activity deleted successfully" });
+      const { id } = req.params;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      req.body.date = today;
+
+      const activity = await DailyBuyerActivity.findByIdAndDelete(
+        id,
+        req.body,
+        { new: true, runValidators: true }
+      );
+      if (!activity)
+        return res.status(404).json({ message: "❌ Activity not found" });
+      res.status(200).json(activity);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+      res.status(400).json({ message: error.message });
     }
 };

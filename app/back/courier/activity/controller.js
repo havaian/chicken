@@ -1,5 +1,4 @@
 const DailyActivity = require('./model');
-const Courier = require('../model');
 
 // Create a new daily activity
 exports.createDailyActivity = async (req, res) => {

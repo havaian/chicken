@@ -1,24 +1,24 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const buyerSchema = new mongoose.Schema(
   {
     full_name: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
     },
     resp_person: {
       type: String,
-      required: true
+      required: true,
     },
     phone_num: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
     },
     location: {
-      type: Object,
-      required: true
+      type: { type: String },
+      coordinates: {},
     },
   },
   {
@@ -28,6 +28,8 @@ const buyerSchema = new mongoose.Schema(
   }
 );
 
-const Buyer = mongoose.model('Buyer', buyerSchema);
+buyerSchema.index({ location: "2dsphere" }); // Index for geospatial queries
+
+const Buyer = mongoose.model("Buyer", buyerSchema);
 
 module.exports = Buyer;

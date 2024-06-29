@@ -2,9 +2,12 @@ const mongoose = require('mongoose');
 
 const dailyActivitySchema = new mongoose.Schema({
   courier: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'Courier',
       required: true
+  },
+  delivered_to: {
+      type: Array
   },
   date: {
       type: Date,
