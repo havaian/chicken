@@ -21,10 +21,17 @@ exports.getAllCouriers = async (req, res) => {
     }
 };
 
-// Get a single courier by ID
+// Get a single courier by phone number or ID
 exports.getCourierById = async (req, res) => {
     try {
-        const courier = await Courier.findOne({ phone_num: req.params.id });
+        const searchCriteria = {};
+        if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+            searchCriteria._id = req.params.id;
+        } else {
+            searchCriteria.phone_num = req.params.id;
+        }
+
+        const courier = await Courier.findOne(searchCriteria);
         if (!courier) return res.status(404).json({ message: "❌ Courier not found" });
         res.status(200).json(courier);
     } catch (error) {
@@ -32,10 +39,17 @@ exports.getCourierById = async (req, res) => {
     }
 };
 
-// Update a courier by ID
+// Update a courier by phone number or ID
 exports.updateCourierById = async (req, res) => {
     try {
-        const courier = await Courier.findOneAndUpdate({ phone_num: req.params.id }, req.body, { new: true, runValidators: true });
+        const searchCriteria = {};
+        if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+            searchCriteria._id = req.params.id;
+        } else {
+            searchCriteria.phone_num = req.params.id;
+        }
+
+        const courier = await Courier.findOneAndUpdate(searchCriteria, req.body, { new: true, runValidators: true });
         if (!courier) return res.status(404).json({ message: "❌ Courier not found" });
         res.status(200).json(courier);
     } catch (error) {

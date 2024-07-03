@@ -21,10 +21,17 @@ exports.getAllWarehouses = async (req, res) => {
     }
 };
 
-// Get a single warehouse by ID
+// Get a single warehouse by phone number or ID
 exports.getWarehouseById = async (req, res) => {
     try {
-        const warehouse = await Warehouse.findOne({ phone_num: req.params.id });
+        const searchCriteria = {};
+        if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+            searchCriteria._id = req.params.id;
+        } else {
+            searchCriteria.phone_num = req.params.id;
+        }
+
+        const warehouse = await Warehouse.findOne(searchCriteria);
         if (!warehouse) return res.status(404).json({ message: "❌ Warehouse not found" });
         res.status(200).json(warehouse);
     } catch (error) {
@@ -32,10 +39,17 @@ exports.getWarehouseById = async (req, res) => {
     }
 };
 
-// Update a warehouse by ID
+// Update a warehouse by phone number or ID
 exports.updateWarehouseById = async (req, res) => {
     try {
-        const warehouse = await Warehouse.findOneAndUpdate({ phone_num: req.params.id }, req.body, { new: true, runValidators: true });
+        const searchCriteria = {};
+        if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+            searchCriteria._id = req.params.id;
+        } else {
+            searchCriteria.phone_num = req.params.id;
+        }
+
+        const warehouse = await Warehouse.findOneAndUpdate(searchCriteria, req.body, { new: true, runValidators: true });
         if (!warehouse) return res.status(404).json({ message: "❌ Warehouse not found" });
         res.status(200).json(warehouse);
     } catch (error) {

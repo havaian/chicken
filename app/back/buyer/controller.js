@@ -24,7 +24,7 @@ exports.getAllBuyers = async (req, res) => {
 // Get a single buyer by ID
 exports.getBuyerById = async (req, res) => {
     try {
-        const buyer = await Buyer.findOne({ $or: [{ full_name: req.params.id }, { phone_num: req.params.id }]});
+        const buyer = await Buyer.findOne({ $or: [{ full_name: req.params.id }, { phone_num: req.params.id }, { _id: req.params.id }]});
         if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
         res.status(200).json(buyer);
     } catch (error) {
@@ -85,6 +85,7 @@ exports.findClosestLocation = async (req, res) => {
 
     // Prepare response with full info
     const closestLocations = closestBuyers.map((buyer) => ({
+      _id: buyer._id,
       full_name: buyer.full_name,
       resp_person: buyer.resp_person,
       phone_num: buyer.phone_num,

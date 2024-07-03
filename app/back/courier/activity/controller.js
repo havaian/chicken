@@ -1,4 +1,7 @@
+const Courier = require('../model');
 const DailyActivity = require('./model');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 // Create a new daily activity
 exports.createDailyActivity = async (req, res) => {
@@ -68,11 +71,26 @@ exports.getTodaysActivity = async (req, res) => {
         const { courierId } = req.params;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-
-        let activity = await DailyActivity.findOne({ courier: courierId, date: today });
         
+        // Check if courierId is a valid ObjectId
+        let courierExists;
+        if (ObjectId.isValid(courierId)) {
+            courierExists = await Courier.findById(courierId);
+        }
+
+        // If not found by ObjectId, try to find by phone_num
+        if (!courierExists) {
+            courierExists = await Courier.findOne({ phone_num: courierId });
+        }
+
+        if (!courierExists) {
+            return res.status(404).json({ message: "❌ Courier not found." });
+        }
+
+        let activity = await DailyActivity.findOne({ courier: courierExists._id, date: today });
+
         if (!activity) {
-            activity = await createTodaysActivity(courierId);
+            activity = await createTodaysActivity(courierExists._id);
         }
 
         res.status(200).json(activity);

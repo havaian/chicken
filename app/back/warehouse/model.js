@@ -11,6 +11,11 @@ const warehouseSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  telegram_chat_id: {
+    type: String,
+    required: false,
+    unique: true
+  },
 },
   {
     timestamps: true,

@@ -1,5 +1,7 @@
 const DailyBuyerActivity = require('./model');
 const Buyer = require('../model');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 // Create a new daily buyer activity
 exports.createDailyActivity = async (req, res) => {
@@ -70,25 +72,37 @@ exports.getLast30DaysActivities = async (req, res) => {
     }
 };
 
-// Get today's activity
 exports.getTodaysActivity = async (req, res) => {
     try {
         const { buyerId } = req.params;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const options = {
-            date: {
-                $gte: new Date(new Date().setDate(new Date().getDate() - 30))
-            }
+            date: today
         };
-        if (buyerId) {
-            options.buyer = buyerId
+
+        let buyerExists;
+        
+        // Check if buyerId is a valid ObjectId
+        if (ObjectId.isValid(buyerId)) {
+            buyerExists = await Buyer.findById(buyerId);
         }
 
+        // If not found by ObjectId, try to find by phone_number
+        if (!buyerExists) {
+            buyerExists = await Buyer.findOne({ phone_num: buyerId });
+        }
+
+        if (!buyerExists) {
+            return res.status(404).json({ message: "❌ Buyer not found." });
+        }
+
+        options.buyer = buyerExists._id;
+
         let activity = await DailyBuyerActivity.findOne(options);
-        
+
         if (!activity) {
-            activity = await createTodaysActivity(buyerId);
+            activity = await createTodaysActivity(buyerExists._id);
         }
 
         res.status(200).json(activity);
@@ -104,7 +118,7 @@ const createTodaysActivity = async (buyerId) => {
         buyer: buyerId,
         date: new Date().setHours(0, 0, 0, 0),
         debt: lastActivity ? lastActivity.debt : 0,
-        remainder: lastActivity ? lastActivity.remainder : 0
+        remained: lastActivity ? lastActivity.remained : 0
     });
 
     await todayActivity.save();

@@ -77,7 +77,7 @@ const createTodaysActivity = async () => {
 
     const todayActivity = new DailyActivity({
         date: new Date().setHours(0, 0, 0, 0),
-        remainder: lastActivity ? lastActivity.remainder : '0',
+        remained: lastActivity ? lastActivity.remained : '0',
         accepted: '0'
     });
 
@@ -91,7 +91,7 @@ exports.updateActivityById = async (req, res) => {
         let activity;
         
         if (req.params.id) {
-            const today = req.body.date;
+            let today = new Date(req.body.date);
             today.setHours(0, 0, 0, 0);
             req.body.date = today;
 

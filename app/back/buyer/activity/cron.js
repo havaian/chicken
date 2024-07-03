@@ -18,7 +18,7 @@ const createTodaysActivityForAllBuyers = async () => {
                 buyer: buyer._id,
                 date: today,
                 debt: lastActivity ? lastActivity.debt : 0,
-                remainder: lastActivity ? lastActivity.remainder : 0
+                remained: lastActivity ? lastActivity.remained : 0
             });
 
             await activity.save();

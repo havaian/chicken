@@ -10,12 +10,12 @@ const dailyBuyerActivitySchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  debt: {
+  payment: {
     type: Number,
     required: true,
     default: 0
   },
-  remainder: {
+  remained: {
     type: Number,
     required: true,
     default: 0

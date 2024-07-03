@@ -6,7 +6,7 @@ const dailyActivitySchema = new mongoose.Schema({
         required: true,
         unique: true // Ensure one entry per day for all warehouses
     },
-    remainder: {
+    remained: {
         type: Number,
         required: true
     },
