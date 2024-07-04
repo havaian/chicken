@@ -37,7 +37,7 @@ app.use(cookieParser());
 
 app.get("/", (req, res) => {
   res.send({
-    chicken: "It's working! 🙌",
+    chicken_back: "It's working! 🙌",
   });
 });
 
