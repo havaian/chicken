@@ -2,7 +2,7 @@
 FROM node:18-alpine
 
 # Set the working directory within the container
-WORKDIR /app
+WORKDIR /chicken
 
 # Copy the package.json files to the container
 COPY package.json ./
