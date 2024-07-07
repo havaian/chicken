@@ -15,7 +15,7 @@ const dailyBuyerActivitySchema = new mongoose.Schema({
     required: true,
     default: 0
   },
-  remained: {
+  current: {
     type: Number,
     required: true,
     default: 0

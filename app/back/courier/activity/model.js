@@ -6,16 +6,32 @@ const dailyActivitySchema = new mongoose.Schema({
       ref: 'Courier',
       required: true
   },
-  delivered_to: {
-      type: Array
+  confirmed: {
+      type: Boolean,
+      required: true,
+      default: false
   },
   date: {
       type: Date,
       required: true,
   },
-  remained: {
+  delivered_to: {
+      type: Array
+  },
+  by_morning: {
       type: Number,
-      required: true
+      required: true,
+      default: 0
+  },
+  current: {
+      type: Number,
+      required: true,
+      default: 0
+  },
+  accepted: {
+      type: Number,
+      required: true,
+      default: 0
   },
   broken: {
       type: Number, // Changed to Number for consistency

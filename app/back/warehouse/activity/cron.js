@@ -12,7 +12,7 @@ const createTodaysActivityForAllWarehouses = async () => {
 
         activity = new DailyActivity({
             date: today,
-            remained: lastActivity ? lastActivity.remained : '0',
+            current: lastActivity ? lastActivity.current : '0',
             accepted: '0'
         });
 

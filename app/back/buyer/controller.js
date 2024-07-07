@@ -74,7 +74,7 @@ exports.findClosestLocation = async (req, res) => {
             type: "Point",
             coordinates: [parseFloat(lng), parseFloat(lat)], // MongoDB expects [longitude, latitude]
           },
-          $maxDistance: 200, // Adjust max distance as needed (in meters)
+          $maxDistance: 10000000, // Adjust max distance as needed (in meters)
         },
       },
     }).limit(5); // Limiting to 5 closest locations

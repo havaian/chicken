@@ -117,8 +117,8 @@ const createTodaysActivity = async (buyerId) => {
     const todayActivity = new DailyBuyerActivity({
         buyer: buyerId,
         date: new Date().setHours(0, 0, 0, 0),
-        debt: lastActivity ? lastActivity.debt : 0,
-        remained: lastActivity ? lastActivity.remained : 0
+        payment: lastActivity ? lastActivity.payment : 0,
+        current: lastActivity ? lastActivity.current : 0
     });
 
     await todayActivity.save();

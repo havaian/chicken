@@ -77,8 +77,9 @@ const createTodaysActivity = async () => {
 
     const todayActivity = new DailyActivity({
         date: new Date().setHours(0, 0, 0, 0),
-        remained: lastActivity ? lastActivity.remained : '0',
-        accepted: '0'
+        by_morning: lastActivity ? lastActivity.current : 0,
+        current: lastActivity ? lastActivity.current : 0,
+        accepted: 0
     });
 
     await todayActivity.save();

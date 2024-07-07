@@ -17,7 +17,7 @@ const createTodaysActivityForAllCouriers = async () => {
             activity = new DailyActivity({
                 courier: courier._id,
                 date: today,
-                remained: lastActivity ? lastActivity.remained : 0,
+                current: lastActivity ? lastActivity.current : 0,
                 broken: 0,
                 earnings: 0,
                 expenses: 0

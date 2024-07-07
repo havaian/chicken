@@ -105,7 +105,8 @@ const createTodaysActivity = async (courierId) => {
     const todayActivity = new DailyActivity({
         courier: courierId,
         date: new Date().setHours(0, 0, 0, 0),
-        remained: lastActivity ? lastActivity.remained : 0,
+        by_morning: lastActivity ? lastActivity.current : 0,
+        current: lastActivity ? lastActivity.current : 0,
         broken: 0,
         earnings: 0,
         expenses: 0
