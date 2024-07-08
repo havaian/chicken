@@ -20,6 +20,10 @@ const buyerSchema = new mongoose.Schema(
       type: { type: String },
       coordinates: {},
     },
+    locations: {
+      type: Array,
+      required: false
+    },
   },
   {
     timestamps: true,

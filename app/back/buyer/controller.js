@@ -32,10 +32,22 @@ exports.getBuyerById = async (req, res) => {
     }
 };
 
+// Function to get buyers by full name (partial or complete match)
+exports.getBuyersByName = async (req, res) => {
+    try {
+        const nameQuery = req.body.client_name;
+        const buyers = await Buyer.find({ full_name: new RegExp(nameQuery, 'i') });
+        if (buyers.length === 0) return res.status(404).json({ message: "❌ No buyers found" });
+        res.status(200).json(buyers);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 // Update a buyer by ID
 exports.updateBuyerById = async (req, res) => {
     try {
-        const buyer = await Buyer.findOneAndUpdate({ phone_num: req.params.id }, req.body, { new: true, runValidators: true });
+        const buyer = await Buyer.findOneAndUpdate({ $or: [{ phone_num: req.params.id }, { _id: req.params.id }]}, req.body, { new: true, runValidators: true });
         if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
         res.status(200).json(buyer);
     } catch (error) {

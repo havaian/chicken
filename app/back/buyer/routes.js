@@ -14,6 +14,9 @@ router.post('/new/', buyerController.createBuyer);
 // Route to find closest location
 router.post('/closest-location', buyerController.findClosestLocation);
 
+// Route to get buyers by full name (partial or complete match)
+router.post('/search', buyerController.getBuyersByName);
+
 // Get all buyers
 router.get('/all', buyerController.getAllBuyers);
 
