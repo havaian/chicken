@@ -27,7 +27,7 @@ exports.createDailyActivity = async (req, res) => {
         await activity.save();
         res.status(201).json(activity);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -38,7 +38,7 @@ exports.getAllActivities = async (req, res) => {
         const activities = await DailyActivity.find();
         res.status(200).json(activities);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -53,7 +53,7 @@ exports.getLast30DaysActivities = async (req, res) => {
         });
         res.status(200).json(activities);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -72,7 +72,7 @@ exports.getTodaysActivity = async (req, res) => {
 
         res.status(200).json(activity);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -102,17 +102,21 @@ exports.updateActivityById = async (req, res) => {
             req.body.date = today;
 
             activity = await DailyActivity.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-            if (!activity) return res.status(404).json({ message: "❌ Activity not found" });
+            if (!activity) {
+                return res.status(404).json({ message: "❌ Activity not found" });
+            }
         } else {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             req.body.date = today;
             activity = await DailyActivity.findOneAndUpdate({ date: today }, req.body, { new: true, runValidators: true });
-            if (!activity) return res.status(404).json({ message: "❌ Today's activity not found" });
+            if (!activity) {
+                return res.status(404).json({ message: "❌ Today's activity not found" });
+            }
         }
         res.status(200).json(activity);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -123,16 +127,20 @@ exports.deleteActivityById = async (req, res) => {
         let activity;
         if (req.params.id) {
             activity = await DailyActivity.findByIdAndDelete(req.params.id);
-            if (!activity) return res.status(404).json({ message: "❌ Activity not found" });
+            if (!activity) {
+                return res.status(404).json({ message: "❌ Activity not found" });
+            }
         } else {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             activity = await DailyActivity.findOneAndDelete({ date: today });
-            if (!activity) return res.status(404).json({ message: "❌ Today's activity not found" });
+            if (!activity) {
+                return res.status(404).json({ message: "❌ Today's activity not found" });
+            }
         }
         res.status(200).json({ message: "✅ Activity deleted successfully" });
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };

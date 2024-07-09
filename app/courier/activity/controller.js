@@ -1,6 +1,13 @@
 const Courier = require('../model');
 const DailyActivity = require('./model');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const { logger, readLog } = require("../../utils/logs");
+
+// Helper function to check if a string is a valid ObjectId
+const isValidObjectId = (id) => {
+    return mongoose.Types.ObjectId.isValid(id);
+};
 
 // Create a new daily activity
 exports.createDailyActivity = async (req, res) => {
@@ -22,6 +29,7 @@ exports.createDailyActivity = async (req, res) => {
         });
 
         if (existingActivity) {
+            logger.info("❌ Activity for this courier on the given date already exists.");
             return res
               .status(400)
               .json({
@@ -35,7 +43,7 @@ exports.createDailyActivity = async (req, res) => {
         await activity.save();
         res.status(201).json(activity);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -47,7 +55,7 @@ exports.getAllActivities = async (req, res) => {
         const activities = await DailyActivity.find();
         res.status(200).json(activities);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -62,7 +70,7 @@ exports.getLast30DaysActivities = async (req, res) => {
         });
         res.status(200).json(activities);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -74,7 +82,16 @@ exports.getTodaysActivity = async (req, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        let courierExists = await Courier.findOne({ $or: [{ phone_num: courierId }, { _id: courierId }]});
+        // Check if courierId is a valid ObjectId
+        let courierExists;
+        if (ObjectId.isValid(courierId)) {
+            courierExists = await Courier.findById(courierId);
+        }
+
+        // If not found by ObjectId, try to find by phone_num
+        if (!courierExists) {
+            courierExists = await Courier.findOne({ phone_num: courierId });
+        }
 
         if (!courierExists) {
             return res.status(404).json({ message: "❌ Courier not found." });
@@ -88,7 +105,6 @@ exports.getTodaysActivity = async (req, res) => {
 
         res.status(200).json(activity);
     } catch (error) {
-        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -114,10 +130,12 @@ const createTodaysActivity = async (courierId) => {
 exports.updateActivityById = async (req, res) => {
     try {
         const activity = await DailyActivity.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-        if (!activity) return res.status(404).json({ message: '❌ Activity not found' });
+        if (!activity) {
+            return res.status(404).json({ message: "❌ Activity not found" });
+        }
         res.status(200).json(activity);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -126,10 +144,12 @@ exports.updateActivityById = async (req, res) => {
 exports.deleteActivityById = async (req, res) => {
     try {
         const activity = await DailyActivity.findByIdAndDelete(req.params.id);
-        if (!activity) return res.status(404).json({ message: "❌ Activity not found" });
+        if (!activity) {
+            return res.status(404).json({ message: "❌ Activity not found" });
+        }
         res.status(200).json({ message: "✅ Activity deleted successfully" });
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };

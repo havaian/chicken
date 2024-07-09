@@ -3,74 +3,82 @@ const { logger, readLog } = require("../utils/logs");
 
 // Create a new buyer
 exports.createBuyer = async (req, res) => {
-    try {
-        const buyer = new Buyer(req.body);
-        await buyer.save();
-        res.status(201).json(buyer);
-    } catch (error) {
-      logger.info(error.message);
-        res.status(400).json({ message: error.message });
-    }
+  try {
+    const buyer = new Buyer(req.body);
+    await buyer.save();
+    res.status(201).json(buyer);
+  } catch (error) {
+    logger.info(error);
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // Get all buyers
 exports.getAllBuyers = async (req, res) => {
-    try {
-        const buyers = await Buyer.find();
-        res.status(200).json(buyers);
-    } catch (error) {
-      logger.info(error.message);
-        res.status(400).json({ message: error.message });
-    }
+  try {
+    const buyers = await Buyer.find();
+    res.status(200).json(buyers);
+  } catch (error) {
+    logger.info(error);
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // Get a single buyer by ID
 exports.getBuyerById = async (req, res) => {
-    try {
-        const buyer = await Buyer.findOne({ $or: [{ full_name: req.params.id }, { phone_num: req.params.id }, { _id: req.params.id }]});
-        if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
-        res.status(200).json(buyer);
-    } catch (error) {
-      logger.info(error.message);
-        res.status(400).json({ message: error.message });
+  try {
+    const buyer = await Buyer.findOne({ $or: [{ full_name: req.params.id }, { phone_num: req.params.id }, { _id: req.params.id }] });
+    if (!buyer) {
+      return res.status(404).json({ message: "❌ Buyer not found" });
     }
+    res.status(200).json(buyer);
+  } catch (error) {
+    logger.info(error);
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // Function to get buyers by full name (partial or complete match)
 exports.getBuyersByName = async (req, res) => {
-    try {
-        const nameQuery = req.body.client_name;
-        const buyers = await Buyer.find({ full_name: new RegExp(nameQuery, 'i') });
-        if (buyers.length === 0) return res.status(404).json({ message: "❌ No buyers found" });
-        res.status(200).json(buyers);
-    } catch (error) {
-      logger.info(error.message);
-        res.status(400).json({ message: error.message });
+  try {
+    const nameQuery = req.body.client_name;
+    const buyers = await Buyer.find({ full_name: new RegExp(nameQuery, 'i') });
+    if (buyers.length === 0) {
+      return res.status(404).json({ message: "❌ No buyers found" });
     }
+    res.status(200).json(buyers);
+  } catch (error) {
+    logger.info(error);
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // Update a buyer by ID
 exports.updateBuyerById = async (req, res) => {
-    try {
-        const buyer = await Buyer.findOneAndUpdate({ $or: [{ phone_num: req.params.id }, { _id: req.params.id }]}, req.body, { new: true, runValidators: true });
-        if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
-        res.status(200).json(buyer);
-    } catch (error) {
-      logger.info(error.message);
-        res.status(400).json({ message: error.message });
+  try {
+    const buyer = await Buyer.findOneAndUpdate({ $or: [{ phone_num: req.params.id }, { _id: req.params.id }] }, req.body, { new: true, runValidators: true });
+    if (!buyer) {
+      return res.status(404).json({ message: "❌ Buyer not found" });
     }
+    res.status(200).json(buyer);
+  } catch (error) {
+    logger.info(error);
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // Delete a buyer by ID
 exports.deleteBuyerById = async (req, res) => {
-    try {
-        const buyer = await Buyer.findOneAndDelete({ phone_num: req.params.id });
-        if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
-        res.status(200).json({ message: "✅ Buyer deleted successfully" });
-    } catch (error) {
-      logger.info(error.message);
-        res.status(400).json({ message: error.message });
+  try {
+    const buyer = await Buyer.findOneAndDelete({ phone_num: req.params.id });
+    if (!buyer) {
+      return res.status(404).json({ message: "❌ Buyer not found" });
     }
+    res.status(200).json({ message: "✅ Buyer deleted successfully" });
+  } catch (error) {
+    logger.info(error);
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // Function to find closest location
@@ -80,7 +88,6 @@ exports.findClosestLocation = async (req, res) => {
 
     // Validate lat and lng are present
     if (!lat || !lng) {
-      logger.info("❌ Latitude and longitude are required");
       return res
         .status(400)
         .json({ message: "❌ Latitude and longitude are required" });
@@ -114,7 +121,7 @@ exports.findClosestLocation = async (req, res) => {
 
     res.status(200).json(closestLocations);
   } catch (error) {
-    logger.info(error.message);
+    logger.info(error);
     res.status(500).json({ message: "❌ Internal server error" });
   }
 };

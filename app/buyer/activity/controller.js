@@ -1,5 +1,7 @@
 const DailyBuyerActivity = require('./model');
 const Buyer = require('../model');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const { logger, readLog } = require("../../utils/logs");
 
 // Create a new daily buyer activity
@@ -11,7 +13,6 @@ exports.createDailyActivity = async (req, res) => {
         // Ensure the date is stripped of time for comparison
         const startOfDay = new Date(date);
         if (isNaN(startOfDay.getTime())) {
-            logger.info("❌ Invalid date format.");
             return res.status(400).json({ message: "❌ Invalid date format." });
         }
         startOfDay.setHours(0, 0, 0, 0);
@@ -37,7 +38,7 @@ exports.createDailyActivity = async (req, res) => {
         await activity.save();
         res.status(201).json(activity);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -52,7 +53,7 @@ exports.getAllActivities = async (req, res) => {
         const activities = await DailyBuyerActivity.find(options);
         res.status(200).json(activities);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -71,7 +72,7 @@ exports.getLast30DaysActivities = async (req, res) => {
         const activities = await DailyBuyerActivity.find(options);
         res.status(200).json(activities);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -85,10 +86,19 @@ exports.getTodaysActivity = async (req, res) => {
             date: today
         };
 
-        let buyerExists = await Buyer.findOne({ $or: [{ phone_num: buyerId }, { _id: buyerId }]});
+        let buyerExists;
+        
+        // Check if buyerId is a valid ObjectId
+        if (ObjectId.isValid(buyerId)) {
+            buyerExists = await Buyer.findById(buyerId);
+        }
+
+        // If not found by ObjectId, try to find by phone_number
+        if (!buyerExists) {
+            buyerExists = await Buyer.findOne({ phone_num: buyerId });
+        }
 
         if (!buyerExists) {
-            logger.info("❌ Buyer not found.");
             return res.status(404).json({ message: "❌ Buyer not found." });
         }
 
@@ -102,7 +112,6 @@ exports.getTodaysActivity = async (req, res) => {
 
         res.status(200).json(activity);
     } catch (error) {
-        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -136,12 +145,11 @@ exports.updateActivityById = async (req, res) => {
             { new: true, runValidators: true }
         );
         if (!activity) {
-            logger.info("❌ Activity not found");
             return res.status(404).json({ message: "❌ Activity not found" });
         }
         res.status(200).json(activity);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -161,12 +169,11 @@ exports.deleteActivityById = async (req, res) => {
             { new: true, runValidators: true }
         );
         if (!activity) {
-            logger.info("❌ Activity not found");
             return res.status(404).json({ message: "❌ Activity not found" });
         }
         res.status(200).json(activity);
     } catch (error) {
-        logger.info(error.message);
+        logger.info(error);
         res.status(400).json({ message: error.message });
     }
 };
