@@ -11,7 +11,13 @@ const dailyActivitySchema = new mongoose.Schema({
         required: true,
     },
     delivered_to: {
-        type: Array
+        type: Array,
+        validate: {
+            validator: function (arr) {
+                return arr.length <= 40;
+            },
+            message: '❌ The delivered_to array exceeds the maximum allowed length of 40.'
+        }
     },
     by_morning: {
         type: Number,

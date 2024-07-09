@@ -9,12 +9,12 @@ const buyerSchema = new mongoose.Schema(
     },
     resp_person: {
       type: String,
-      required: true,
+      required: false,
     },
     phone_num: {
       type: String,
-      required: true,
-      unique: true,
+      required: false,
+      unique: false,
     },
     location: {
       type: { type: String },
