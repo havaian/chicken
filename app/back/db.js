@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
+const { logger, readLog } = require("./utils/logs");
 
 // Connect to MongoDB
 mongoose
   .connect(process.env.DB_URL)
   .then(() => {
-    console.log("DB ✅");
+    logger.info("DB ✅");
   })
   .catch((error) => {
-    console.error("❌ Error connecting to the database:", error);
+    logger.info("❌ Error connecting to the database:", error);
   });

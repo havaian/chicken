@@ -1,5 +1,6 @@
 const Courier = require("./courier/model");
 const Warehouse = require("./warehouse/model");
+const { logger, readLog } = require("./utils/logs");
 
 // Function to standardize phone number
 const standardizePhoneNumber = (phoneNumber) => {
@@ -25,7 +26,7 @@ exports.findRecordByPhone = async (phoneNumber) => {
 
     return null; // Return null if not found in both collections
   } catch (error) {
-    console.error("Error finding record:", error);
+    logger.info("Error finding record:", error);
     return null;
   }
 };

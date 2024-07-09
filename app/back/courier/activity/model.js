@@ -6,11 +6,6 @@ const dailyActivitySchema = new mongoose.Schema({
         ref: 'Courier',
         required: true
     },
-    confirmed: {
-        type: Boolean,
-        required: true,
-        default: false
-    },
     date: {
         type: Date,
         required: true,
@@ -32,11 +27,6 @@ const dailyActivitySchema = new mongoose.Schema({
         type: Number,
         required: true,
         default: 0
-    },
-    accepted_eggs: {
-        type: Boolean,
-        required: true,
-        default: false
     },
     broken: {
         type: Number, // Changed to Number for consistency

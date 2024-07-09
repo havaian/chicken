@@ -6,11 +6,6 @@ const dailyActivitySchema = new mongoose.Schema({
         required: true,
         unique: true // Ensure one entry per day for all warehouses
     },
-    confirmed: {
-        type: Boolean,
-        required: true,
-        default: false
-    },
     distributed_to: {
         type: Array,
         required: true,
@@ -65,10 +60,6 @@ const dailyActivitySchema = new mongoose.Schema({
         type: Number,
         required: true,
         default: 0
-    },
-    ombor_mudiri: {
-        type: String,
-        required: false,
     }
 }, {
     timestamps: true,

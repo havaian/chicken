@@ -1,4 +1,5 @@
 const Buyer = require('./model');
+const { logger, readLog } = require("../utils/logs");
 
 // Create a new buyer
 exports.createBuyer = async (req, res) => {
@@ -7,6 +8,7 @@ exports.createBuyer = async (req, res) => {
         await buyer.save();
         res.status(201).json(buyer);
     } catch (error) {
+      logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -17,6 +19,7 @@ exports.getAllBuyers = async (req, res) => {
         const buyers = await Buyer.find();
         res.status(200).json(buyers);
     } catch (error) {
+      logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -28,6 +31,7 @@ exports.getBuyerById = async (req, res) => {
         if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
         res.status(200).json(buyer);
     } catch (error) {
+      logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -40,6 +44,7 @@ exports.getBuyersByName = async (req, res) => {
         if (buyers.length === 0) return res.status(404).json({ message: "❌ No buyers found" });
         res.status(200).json(buyers);
     } catch (error) {
+      logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -51,6 +56,7 @@ exports.updateBuyerById = async (req, res) => {
         if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
         res.status(200).json(buyer);
     } catch (error) {
+      logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -62,6 +68,7 @@ exports.deleteBuyerById = async (req, res) => {
         if (!buyer) return res.status(404).json({ message: "❌ Buyer not found" });
         res.status(200).json({ message: "✅ Buyer deleted successfully" });
     } catch (error) {
+      logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -73,6 +80,7 @@ exports.findClosestLocation = async (req, res) => {
 
     // Validate lat and lng are present
     if (!lat || !lng) {
+      logger.info("❌ Latitude and longitude are required");
       return res
         .status(400)
         .json({ message: "❌ Latitude and longitude are required" });
@@ -106,7 +114,7 @@ exports.findClosestLocation = async (req, res) => {
 
     res.status(200).json(closestLocations);
   } catch (error) {
-    console.error(error);
+    logger.info(error.message);
     res.status(500).json({ message: "❌ Internal server error" });
   }
 };

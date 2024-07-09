@@ -1,4 +1,5 @@
 const Warehouse = require('./model');
+const { logger, readLog } = require("../utils/logs");
 
 // Create a new warehouse
 exports.createWarehouse = async (req, res) => {
@@ -7,6 +8,7 @@ exports.createWarehouse = async (req, res) => {
         await warehouse.save();
         res.status(201).json(warehouse);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -17,6 +19,7 @@ exports.getAllWarehouses = async (req, res) => {
         const warehouses = await Warehouse.find();
         res.status(200).json(warehouses);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -35,6 +38,7 @@ exports.getWarehouseById = async (req, res) => {
         if (!warehouse) return res.status(404).json({ message: "❌ Warehouse not found" });
         res.status(200).json(warehouse);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -53,6 +57,7 @@ exports.updateWarehouseById = async (req, res) => {
         if (!warehouse) return res.status(404).json({ message: "❌ Warehouse not found" });
         res.status(200).json(warehouse);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -64,6 +69,7 @@ exports.deleteWarehouseById = async (req, res) => {
         if (!warehouse) return res.status(404).json({ message: "❌ Warehouse not found" });
         res.status(200).json({ message: "✅ Warehouse deleted successfully" });
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };

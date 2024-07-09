@@ -1,7 +1,6 @@
 const DailyBuyerActivity = require('./model');
 const Buyer = require('../model');
-const mongoose = require('mongoose');
-const ObjectId = mongoose.Types.ObjectId;
+const { logger, readLog } = require("../../utils/logs");
 
 // Create a new daily buyer activity
 exports.createDailyActivity = async (req, res) => {
@@ -12,23 +11,25 @@ exports.createDailyActivity = async (req, res) => {
         // Ensure the date is stripped of time for comparison
         const startOfDay = new Date(date);
         if (isNaN(startOfDay.getTime())) {
+            logger.info("❌ Invalid date format.");
             return res.status(400).json({ message: "❌ Invalid date format." });
         }
         startOfDay.setHours(0, 0, 0, 0);
 
         // Check if an activity already exists for the given buyer and date
-        const existingActivity = await DailyBuyerActivity.findOne({ 
-            buyer: buyer, 
-            date: startOfDay 
+        const existingActivity = await DailyBuyerActivity.findOne({
+            buyer: buyer,
+            date: startOfDay
         });
 
         if (existingActivity) {
+            logger.info("❌ Activity for this buyer on the given date already exists.");
             return res
-              .status(400)
-              .json({
-                message:
-                  "❌ Activity for this buyer on the given date already exists.",
-              });
+                .status(400)
+                .json({
+                    message:
+                        "❌ Activity for this buyer on the given date already exists.",
+                });
         }
 
         // Create new daily activity
@@ -36,6 +37,7 @@ exports.createDailyActivity = async (req, res) => {
         await activity.save();
         res.status(201).json(activity);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -50,6 +52,7 @@ exports.getAllActivities = async (req, res) => {
         const activities = await DailyBuyerActivity.find(options);
         res.status(200).json(activities);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -68,6 +71,7 @@ exports.getLast30DaysActivities = async (req, res) => {
         const activities = await DailyBuyerActivity.find(options);
         res.status(200).json(activities);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -81,19 +85,10 @@ exports.getTodaysActivity = async (req, res) => {
             date: today
         };
 
-        let buyerExists;
-        
-        // Check if buyerId is a valid ObjectId
-        if (ObjectId.isValid(buyerId)) {
-            buyerExists = await Buyer.findById(buyerId);
-        }
-
-        // If not found by ObjectId, try to find by phone_number
-        if (!buyerExists) {
-            buyerExists = await Buyer.findOne({ phone_num: buyerId });
-        }
+        let buyerExists = await Buyer.findOne({ $or: [{ phone_num: buyerId }, { _id: buyerId }]});
 
         if (!buyerExists) {
+            logger.info("❌ Buyer not found.");
             return res.status(404).json({ message: "❌ Buyer not found." });
         }
 
@@ -107,6 +102,7 @@ exports.getTodaysActivity = async (req, res) => {
 
         res.status(200).json(activity);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -129,20 +125,23 @@ const createTodaysActivity = async (buyerId) => {
 exports.updateActivityById = async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         req.body.date = today;
 
         const activity = await DailyBuyerActivity.findByIdAndUpdate(
-          id,
-          req.body,
-          { new: true, runValidators: true }
+            id,
+            req.body,
+            { new: true, runValidators: true }
         );
-        if (!activity)
-          return res.status(404).json({ message: "❌ Activity not found" });
+        if (!activity) {
+            logger.info("❌ Activity not found");
+            return res.status(404).json({ message: "❌ Activity not found" });
+        }
         res.status(200).json(activity);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -150,21 +149,24 @@ exports.updateActivityById = async (req, res) => {
 // Delete an activity by ID
 exports.deleteActivityById = async (req, res) => {
     try {
-      const { id } = req.params;
+        const { id } = req.params;
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      req.body.date = today;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        req.body.date = today;
 
-      const activity = await DailyBuyerActivity.findByIdAndDelete(
-        id,
-        req.body,
-        { new: true, runValidators: true }
-      );
-      if (!activity)
-        return res.status(404).json({ message: "❌ Activity not found" });
-      res.status(200).json(activity);
+        const activity = await DailyBuyerActivity.findByIdAndDelete(
+            id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+        if (!activity) {
+            logger.info("❌ Activity not found");
+            return res.status(404).json({ message: "❌ Activity not found" });
+        }
+        res.status(200).json(activity);
     } catch (error) {
-      res.status(400).json({ message: error.message });
+        logger.info(error.message);
+        res.status(400).json({ message: error.message });
     }
 };

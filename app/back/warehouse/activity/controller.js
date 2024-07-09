@@ -1,4 +1,5 @@
 const DailyActivity = require('./model');
+const { logger, readLog } = require("../../utils/logs");
 
 // Create a new daily activity
 exports.createDailyActivity = async (req, res) => {
@@ -26,6 +27,7 @@ exports.createDailyActivity = async (req, res) => {
         await activity.save();
         res.status(201).json(activity);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -36,6 +38,7 @@ exports.getAllActivities = async (req, res) => {
         const activities = await DailyActivity.find();
         res.status(200).json(activities);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -50,6 +53,7 @@ exports.getLast30DaysActivities = async (req, res) => {
         });
         res.status(200).json(activities);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -68,6 +72,7 @@ exports.getTodaysActivity = async (req, res) => {
 
         res.status(200).json(activity);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -107,6 +112,7 @@ exports.updateActivityById = async (req, res) => {
         }
         res.status(200).json(activity);
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
@@ -126,6 +132,7 @@ exports.deleteActivityById = async (req, res) => {
         }
         res.status(200).json({ message: "✅ Activity deleted successfully" });
     } catch (error) {
+        logger.info(error.message);
         res.status(400).json({ message: error.message });
     }
 };
