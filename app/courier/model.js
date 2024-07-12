@@ -1,32 +1,34 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const courierSchema = new mongoose.Schema({
-  full_name: {
+const courierSchema = new mongoose.Schema(
+  {
+    full_name: {
       type: String,
       required: true,
-      unique: true
-  },
-  phone_num: {
+      unique: true,
+    },
+    phone_num: {
       type: String,
       required: true,
-      unique: true
-  },
-  car_num: {
+      unique: true,
+    },
+    car_num: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
+    },
+    telegram_chat_id: {
+      type: String,
+      required: false,
+    },
   },
-  telegram_chat_id: {
-    type: String,
-    required: false
-  },
-}, 
-{ 
-  timestamps: true, 
-  strict: true, 
-  strictQuery: false 
-});
+  {
+    timestamps: true,
+    strict: true,
+    strictQuery: false,
+  }
+);
 
-const Courier = mongoose.model('Courier', courierSchema);
+const Courier = mongoose.model("Courier", courierSchema);
 
 module.exports = Courier;

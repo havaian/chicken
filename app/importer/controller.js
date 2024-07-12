@@ -1,4 +1,4 @@
-const Importer = require('./model');
+const Importer = require("./model");
 const { logger, readLog } = require("../utils/logs");
 
 // Create a new importer
@@ -27,7 +27,13 @@ exports.getAllImporters = async (req, res) => {
 // Get a single importer by ID
 exports.getImporterById = async (req, res) => {
   try {
-    const importer = await Importer.findOne({ $or: [{ full_name: req.params.id }, { phone_num: req.params.id }, { _id: req.params.id }] });
+    const importer = await Importer.findOne({
+      $or: [
+        { full_name: req.params.id },
+        { phone_num: req.params.id },
+        { _id: req.params.id },
+      ],
+    });
     if (!importer) {
       return res.status(404).json({ message: "❌ Importer not found" });
     }
@@ -42,7 +48,9 @@ exports.getImporterById = async (req, res) => {
 exports.getImportersByName = async (req, res) => {
   try {
     const nameQuery = req.body.client_name;
-    const importers = await Importer.find({ full_name: new RegExp(nameQuery, 'i') });
+    const importers = await Importer.find({
+      full_name: new RegExp(nameQuery, "i"),
+    });
     if (importers.length === 0) {
       return res.status(404).json({ message: "❌ No importers found" });
     }
@@ -56,7 +64,11 @@ exports.getImportersByName = async (req, res) => {
 // Update a importer by ID
 exports.updateImporterById = async (req, res) => {
   try {
-    const importer = await Importer.findOneAndUpdate({ $or: [{ phone_num: req.params.id }, { _id: req.params.id }] }, req.body, { new: true, runValidators: true });
+    const importer = await Importer.findOneAndUpdate(
+      { $or: [{ phone_num: req.params.id }, { _id: req.params.id }] },
+      req.body,
+      { new: true, runValidators: true }
+    );
     if (!importer) {
       return res.status(404).json({ message: "❌ Importer not found" });
     }
@@ -70,7 +82,9 @@ exports.updateImporterById = async (req, res) => {
 // Delete a importer by ID
 exports.deleteImporterById = async (req, res) => {
   try {
-    const importer = await Importer.findOneAndDelete({ phone_num: req.params.id });
+    const importer = await Importer.findOneAndDelete({
+      phone_num: req.params.id,
+    });
     if (!importer) {
       return res.status(404).json({ message: "❌ Importer not found" });
     }

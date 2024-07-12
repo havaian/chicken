@@ -1,7 +1,7 @@
-// const cron = require('node-cron');
-// const DailyBuyerActivity = require('./model');
-// const Buyer = require('../model');
-// const { createTodaysActivity } = require('./controller');
+// const cron = require("node-cron");
+// const DailyBuyerActivity = require("./model");
+// const Buyer = require("../model");
+// const { createTodaysActivity } = require("./controller");
 
 // const createTodaysActivityForAllBuyers = async () => {
 //     const buyers = await Buyer.find();
@@ -19,4 +19,4 @@
 // };
 
 // // Schedule the cron job to run at midnight every day
-// cron.schedule('0 0 * * *', createTodaysActivityForAllBuyers);
+// cron.schedule("0 0 * * *", createTodaysActivityForAllBuyers);

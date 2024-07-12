@@ -13,13 +13,17 @@ exports.findRecordByPhone = async (phoneNumber) => {
     const standardizedPhoneNumber = standardizePhoneNumber(phoneNumber);
 
     // Search in Courier collection
-    const courierRecord = await Courier.findOne({ phone_num: new RegExp(standardizedPhoneNumber + '$') });
+    const courierRecord = await Courier.findOne({
+      phone_num: new RegExp(standardizedPhoneNumber + "$"),
+    });
     if (courierRecord) {
       return { ...courierRecord.toObject(), userType: "courier" };
     }
 
     // Search in Warehouse collection if not found in Courier
-    const warehouseRecord = await Warehouse.findOne({ phone_num: new RegExp(standardizedPhoneNumber + '$') });
+    const warehouseRecord = await Warehouse.findOne({
+      phone_num: new RegExp(standardizedPhoneNumber + "$"),
+    });
     if (warehouseRecord) {
       return { ...warehouseRecord.toObject(), userType: "warehouse" };
     }

@@ -1,4 +1,4 @@
-const DailyActivity = require('./model');
+const DailyActivity = require("./model");
 const { logger, readLog } = require("../../utils/logs");
 
 // Create a new daily activity
@@ -58,7 +58,7 @@ exports.getLast30DaysActivities = async (req, res) => {
     }
 };
 
-// Get today's activity
+// Get today"s activity
 exports.getTodaysActivity = async (req, res) => {
     try {
         const today = new Date();
@@ -91,7 +91,7 @@ const createTodaysActivity = async () => {
     return todayActivity;
 };
 
-// Update an activity by ID or today's activity if no ID is provided
+// Update an activity by ID or today"s activity if no ID is provided
 exports.updateActivityById = async (req, res) => {
     try {
         let activity;
@@ -111,7 +111,7 @@ exports.updateActivityById = async (req, res) => {
             req.body.date = today;
             activity = await DailyActivity.findOneAndUpdate({ date: today }, req.body, { new: true, runValidators: true });
             if (!activity) {
-                return res.status(404).json({ message: "❌ Today's activity not found" });
+                return res.status(404).json({ message: "❌ Today"s activity not found" });
             }
         }
         res.status(200).json(activity);
@@ -121,7 +121,7 @@ exports.updateActivityById = async (req, res) => {
     }
 };
 
-// Delete an activity by ID or today's activity if no ID is provided
+// Delete an activity by ID or today"s activity if no ID is provided
 exports.deleteActivityById = async (req, res) => {
     try {
         let activity;
@@ -135,7 +135,7 @@ exports.deleteActivityById = async (req, res) => {
             today.setHours(0, 0, 0, 0);
             activity = await DailyActivity.findOneAndDelete({ date: today });
             if (!activity) {
-                return res.status(404).json({ message: "❌ Today's activity not found" });
+                return res.status(404).json({ message: "❌ Today"s activity not found" });
             }
         }
         res.status(200).json({ message: "✅ Activity deleted successfully" });

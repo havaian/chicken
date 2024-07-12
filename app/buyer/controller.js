@@ -1,4 +1,4 @@
-const Buyer = require('./model');
+const Buyer = require("./model");
 const { logger, readLog } = require("../utils/logs");
 
 // Create a new buyer
@@ -27,7 +27,13 @@ exports.getAllBuyers = async (req, res) => {
 // Get a single buyer by ID
 exports.getBuyerById = async (req, res) => {
   try {
-    const buyer = await Buyer.findOne({ $or: [{ full_name: req.params.id }, { phone_num: req.params.id }, { _id: req.params.id }] });
+    const buyer = await Buyer.findOne({
+      $or: [
+        { full_name: req.params.id },
+        { phone_num: req.params.id },
+        { _id: req.params.id },
+      ],
+    });
     if (!buyer) {
       return res.status(404).json({ message: "❌ Buyer not found" });
     }
@@ -42,7 +48,9 @@ exports.getBuyerById = async (req, res) => {
 exports.getBuyersByName = async (req, res) => {
   try {
     const nameQuery = req.body.client_name;
-    const buyers = await Buyer.find({ full_name: new RegExp(nameQuery, 'i') }).limit(50);
+    const buyers = await Buyer.find({
+      full_name: new RegExp(nameQuery, "i"),
+    }).limit(50);
     if (buyers.length === 0) {
       return res.status(404).json({ message: "❌ No buyers found" });
     }
@@ -56,7 +64,11 @@ exports.getBuyersByName = async (req, res) => {
 // Update a buyer by ID
 exports.updateBuyerById = async (req, res) => {
   try {
-    const buyer = await Buyer.findOneAndUpdate({ $or: [{ phone_num: req.params.id }, { _id: req.params.id }] }, req.body, { new: true, runValidators: true });
+    const buyer = await Buyer.findOneAndUpdate(
+      { $or: [{ phone_num: req.params.id }, { _id: req.params.id }] },
+      req.body,
+      { new: true, runValidators: true }
+    );
     if (!buyer) {
       return res.status(404).json({ message: "❌ Buyer not found" });
     }

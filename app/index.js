@@ -3,6 +3,8 @@ const bodyParser = require("body-parser");
 const buyerRoutes = require("./buyer/routes");
 const courierRoutes = require("./courier/routes");
 const warehouseRoutes = require("./warehouse/routes");
+const importerRoutes = require("./importer/routes");
+// const adminRoutes = require("./admin/routes");
 const { logger, readLog } = require("./utils/logs");
 
 const app = express();
@@ -20,7 +22,7 @@ var corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Create a stream object with a 'write' function that `morgan` can use
+// Create a stream object with a "write" function that `morgan` can use
 const log4jsStream = {
   write: (message) => {
     logger.info(message.trim());
@@ -39,7 +41,7 @@ app.use((req, res, next) => {
     return oldSend.apply(res, arguments);
   };
 
-  res.on('finish', () => {
+  res.on("finish", () => {
     logger.info(`Request Headers: ${JSON.stringify(req.headers)}`);
     logger.info(`Request Body: ${JSON.stringify(req.body)}`);
     logger.info(`Response Data: ${res.locals.body}`);
@@ -65,7 +67,7 @@ app.get("/", (req, res) => {
 app.get("/logs", (req, res) => {
   try {
     const result = readLog();
-    res.set('Content-Type', 'text/plain');
+    res.set("Content-Type", "text/plain");
     return res.send(result);
   } catch(e) {
     return res.sendStatus(500);
@@ -76,6 +78,8 @@ app.get("/logs", (req, res) => {
 app.use("/buyer", buyerRoutes);
 app.use("/courier", courierRoutes);
 app.use("/warehouse", warehouseRoutes);
+app.use("/importer", importerRoutes);
+// app.use("/admin", adminRoutes);
 app.use(require("./routes"));
 
 // Start the server
