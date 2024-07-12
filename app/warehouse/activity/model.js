@@ -16,7 +16,7 @@ const dailyActivitySchema = new mongoose.Schema({
         required: true,
         default: 0
     },
-    accepted_at: {
+    accepted_from: {
         type: Array,
         required: true,
         default: []
@@ -27,16 +27,6 @@ const dailyActivitySchema = new mongoose.Schema({
         default: 0
     },
     current: {
-        type: Number,
-        required: true,
-        default: 0
-    },
-    couriers_broken: {
-        type: Number,
-        required: true,
-        default: 0
-    },
-    couriers_current: {
         type: Number,
         required: true,
         default: 0

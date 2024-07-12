@@ -15,10 +15,10 @@ const dailyBuyerActivitySchema = new mongoose.Schema({
     required: true,
     default: 0
   },
-  current: {
-    type: Number,
+  accepted: {
+    type: Array,
     required: true,
-    default: 0
+    default: []
   },
 }, 
 { 

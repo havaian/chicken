@@ -42,7 +42,7 @@ exports.getBuyerById = async (req, res) => {
 exports.getBuyersByName = async (req, res) => {
   try {
     const nameQuery = req.body.client_name;
-    const buyers = await Buyer.find({ full_name: new RegExp(nameQuery, 'i') });
+    const buyers = await Buyer.find({ full_name: new RegExp(nameQuery, 'i') }).limit(50);
     if (buyers.length === 0) {
       return res.status(404).json({ message: "❌ No buyers found" });
     }

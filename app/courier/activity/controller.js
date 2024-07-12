@@ -100,7 +100,7 @@ exports.getTodaysActivity = async (req, res) => {
         let activity = await DailyActivity.findOne({ courier: courierExists._id, date: today });
 
         if (!activity) {
-            activity = await createTodaysActivity(courierExists._id);
+            activity = await this.createTodaysActivity(courierExists._id);
         }
 
         res.status(200).json(activity);
@@ -109,7 +109,7 @@ exports.getTodaysActivity = async (req, res) => {
     }
 };
 
-const createTodaysActivity = async (courierId) => {
+exports.createTodaysActivity = async (courierId) => {
     const lastActivity = await DailyActivity.findOne({ courier: courierId }).sort({ date: -1 });
 
     const todayActivity = new DailyActivity({
