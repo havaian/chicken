@@ -3,7 +3,7 @@ const DailyActivity = require("./model");
 
 const createTodaysActivityForAllWarehouses = async () => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setHours(11, 0, 0, 0);
 
   let activity = await DailyActivity.findOne({ date: today });
 

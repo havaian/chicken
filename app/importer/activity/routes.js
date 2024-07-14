@@ -11,7 +11,7 @@ router.get("/all/:importerId?", activityController.getAllActivities);
 // Get activities for the last 30 days
 router.get("/last30days/:buyerId?", activityController.getLast30DaysActivities);
 
-// Get today"s activity
+// Get today's activity
 router.get("/today/:importerId?", activityController.getTodaysActivity);
 
 // Update an activity by ID

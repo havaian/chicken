@@ -15,7 +15,7 @@ exports.createDailyActivity = async (req, res) => {
     if (isNaN(startOfDay.getTime())) {
       return res.status(400).json({ message: "❌ Invalid date format." });
     }
-    startOfDay.setHours(0, 0, 0, 0);
+    startOfDay.setHours(11, 0, 0, 0);
 
     // Check if an activity already exists for the given importer and date
     const existingActivity = await DailyImporterActivity.findOne({
@@ -84,7 +84,7 @@ exports.getTodaysActivity = async (req, res) => {
   try {
     const { importerId } = req.params;
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(11, 0, 0, 0);
     const options = {
       date: today,
     };
@@ -124,9 +124,13 @@ exports.createTodaysActivity = async (importerId) => {
     importer: importerId,
   }).sort({ date: -1 });
 
+  // Create a new date instance for today
+  const today = new Date();
+  today.setHours(11, 0, 0, 0);
+
   const todayActivity = new DailyImporterActivity({
     importer: importerId,
-    date: new Date().setHours(0, 0, 0, 0),
+    date: today,
     payment: lastActivity ? lastActivity.payment : 0,
     accepted: lastActivity ? lastActivity.accepted : [],
   });
@@ -141,7 +145,7 @@ exports.updateActivityById = async (req, res) => {
     const { id } = req.params;
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(11, 0, 0, 0);
     req.body.date = today;
 
     const activity = await DailyImporterActivity.findByIdAndUpdate(
@@ -165,7 +169,7 @@ exports.deleteActivityById = async (req, res) => {
     const { id } = req.params;
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(11, 0, 0, 0);
     req.body.date = today;
 
     const activity = await DailyImporterActivity.findByIdAndDelete(

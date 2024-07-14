@@ -14,7 +14,7 @@ const dailyActivitySchema = new mongoose.Schema(
     delivered_to: {
       type: Array,
       validate: {
-        validator: function (arr) {
+        validator: (arr) => {
           return arr.length <= 40;
         },
         message:
@@ -27,6 +27,11 @@ const dailyActivitySchema = new mongoose.Schema(
       default: 0,
     },
     current: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    current_by_courier: {
       type: Number,
       required: true,
       default: 0,

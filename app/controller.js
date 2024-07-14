@@ -22,7 +22,7 @@ exports.findRecordByPhone = async (phoneNumber) => {
 
     // Search in Warehouse collection if not found in Courier
     const warehouseRecord = await Warehouse.findOne({
-      phone_num: new RegExp(standardizedPhoneNumber + "$"),
+      phone_num: { $elemMatch: { $regex: new RegExp(standardizedPhoneNumber + "$") } },
     });
     if (warehouseRecord) {
       return { ...warehouseRecord.toObject(), userType: "warehouse" };

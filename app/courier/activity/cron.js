@@ -8,7 +8,7 @@
 
 //     for (const courier of couriers) {
 //         const today = new Date();
-//         today.setHours(0, 0, 0, 0);
+//         today.setHours(11, 0, 0, 0);
 
 //         let activity = await DailyActivity.findOne({ courier: courier._id, date: today });
 

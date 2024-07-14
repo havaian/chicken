@@ -13,14 +13,13 @@ const isValidObjectId = (id) => {
 exports.createDailyActivity = async (req, res) => {
   try {
     const { courier } = req.body;
-    const date = new Date();
 
     // Ensure the date is stripped of time for comparison
-    const startOfDay = new Date(date);
+    const startOfDay = new Date();
     if (isNaN(startOfDay.getTime())) {
       return res.status(400).json({ message: "❌ Invalid date format." });
     }
-    startOfDay.setHours(0, 0, 0, 0);
+    startOfDay.setHours(11, 0, 0, 0);
 
     // Check if an activity already exists for the given courier and date
     const existingActivity = await DailyActivity.findOne({
@@ -74,12 +73,12 @@ exports.getLast30DaysActivities = async (req, res) => {
   }
 };
 
-// Get today"s activity
+// Get today's activity
 exports.getTodaysActivity = async (req, res) => {
   try {
     const { courierId } = req.params;
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(11, 0, 0, 0);
 
     // Check if courierId is a valid ObjectId
     let courierExists;
@@ -116,9 +115,13 @@ exports.createTodaysActivity = async (courierId) => {
     { date: -1 }
   );
 
+  // Create a new date instance for today
+  const today = new Date();
+  today.setHours(11, 0, 0, 0);
+
   const todayActivity = new DailyActivity({
     courier: courierId,
-    date: new Date().setHours(0, 0, 0, 0),
+    date: today,
     by_morning: lastActivity ? lastActivity.current : 0,
     current: lastActivity ? lastActivity.current : 0,
     broken: 0,

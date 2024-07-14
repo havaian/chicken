@@ -11,7 +11,7 @@ exports.createDailyActivity = async (req, res) => {
         if (isNaN(startOfDay.getTime())) {
             return res.status(400).json({ message: "❌ Invalid date format." });
         }
-        startOfDay.setHours(0, 0, 0, 0);
+        startOfDay.setHours(11, 0, 0, 0);
 
         // Check if an activity already exists for the given date
         const existingActivity = await DailyActivity.findOne({ 
@@ -58,11 +58,11 @@ exports.getLast30DaysActivities = async (req, res) => {
     }
 };
 
-// Get today"s activity
+// Get today's activity
 exports.getTodaysActivity = async (req, res) => {
     try {
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        today.setHours(11, 0, 0, 0);
 
         let activity = await DailyActivity.findOne({ date: today });
         
@@ -81,7 +81,7 @@ const createTodaysActivity = async () => {
     const lastActivity = await DailyActivity.findOne().sort({ date: -1 });
 
     const todayActivity = new DailyActivity({
-        date: new Date().setHours(0, 0, 0, 0),
+        date: new Date().setHours(11, 0, 0, 0),
         by_morning: lastActivity ? lastActivity.current : 0,
         current: lastActivity ? lastActivity.current : 0,
         accepted: 0
@@ -91,14 +91,14 @@ const createTodaysActivity = async () => {
     return todayActivity;
 };
 
-// Update an activity by ID or today"s activity if no ID is provided
+// Update an activity by ID or today's activity if no ID is provided
 exports.updateActivityById = async (req, res) => {
     try {
         let activity;
         
         if (req.params.id) {
             let today = new Date(req.body.date);
-            today.setHours(0, 0, 0, 0);
+            today.setHours(11, 0, 0, 0);
             req.body.date = today;
 
             activity = await DailyActivity.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
@@ -107,11 +107,11 @@ exports.updateActivityById = async (req, res) => {
             }
         } else {
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            today.setHours(11, 0, 0, 0);
             req.body.date = today;
             activity = await DailyActivity.findOneAndUpdate({ date: today }, req.body, { new: true, runValidators: true });
             if (!activity) {
-                return res.status(404).json({ message: "❌ Today"s activity not found" });
+                return res.status(404).json({ message: "❌ Today's activity not found" });
             }
         }
         res.status(200).json(activity);
@@ -121,7 +121,7 @@ exports.updateActivityById = async (req, res) => {
     }
 };
 
-// Delete an activity by ID or today"s activity if no ID is provided
+// Delete an activity by ID or today's activity if no ID is provided
 exports.deleteActivityById = async (req, res) => {
     try {
         let activity;
@@ -132,10 +132,10 @@ exports.deleteActivityById = async (req, res) => {
             }
         } else {
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            today.setHours(11, 0, 0, 0);
             activity = await DailyActivity.findOneAndDelete({ date: today });
             if (!activity) {
-                return res.status(404).json({ message: "❌ Today"s activity not found" });
+                return res.status(404).json({ message: "❌ Today's activity not found" });
             }
         }
         res.status(200).json({ message: "✅ Activity deleted successfully" });

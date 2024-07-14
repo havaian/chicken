@@ -32,22 +32,27 @@ const dailyActivitySchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
-    butun: {
+    incision: {
       type: Number,
       required: true,
       default: 0,
     },
-    nasechka: {
+    melange: {
       type: Number,
       required: true,
       default: 0,
     },
-    melaj: {
+    broken: {
       type: Number,
       required: true,
       default: 0,
     },
-    kamomat: {
+    intact: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    deficit: {
       type: Number,
       required: true,
       default: 0,

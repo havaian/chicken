@@ -8,12 +8,12 @@ const warehouseSchema = new mongoose.Schema(
       unique: true,
     },
     phone_num: {
-      type: String,
+      type: Array,
       required: true,
       unique: true,
     },
     telegram_chat_id: {
-      type: String,
+      type: Array,
       required: false,
       unique: true,
     },

@@ -34,14 +34,14 @@ app.use(morgan("dev", { stream: log4jsStream }));
 
 // Middleware to capture and log request and response details
 app.use((req, res, next) => {
-  let oldSend = res.send;
+  const originalSend = res.send;
 
   res.send = function (data) {
     res.locals.body = data;
-    return oldSend.apply(res, arguments);
+    originalSend.call(this, data);
   };
 
-  res.on("finish", () => {
+  res.on('finish', () => {
     logger.info(`Request Headers: ${JSON.stringify(req.headers)}`);
     logger.info(`Request Body: ${JSON.stringify(req.body)}`);
     logger.info(`Response Data: ${res.locals.body}`);

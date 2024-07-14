@@ -15,7 +15,7 @@ exports.createDailyActivity = async (req, res) => {
     if (isNaN(startOfDay.getTime())) {
       return res.status(400).json({ message: "❌ Invalid date format." });
     }
-    startOfDay.setHours(0, 0, 0, 0);
+    startOfDay.setHours(11, 0, 0, 0);
 
     // Check if an activity already exists for the given buyer and date
     const existingActivity = await DailyBuyerActivity.findOne({
@@ -80,7 +80,7 @@ exports.getTodaysActivity = async (req, res) => {
   try {
     const { buyerId } = req.params;
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(11, 0, 0, 0);
     const options = {
       date: today,
     };
@@ -122,7 +122,7 @@ exports.createTodaysActivity = async (buyerId) => {
 
   const todayActivity = new DailyBuyerActivity({
     buyer: buyerId,
-    date: new Date().setHours(0, 0, 0, 0),
+    date: new Date().setHours(11, 0, 0, 0),
     payment: lastActivity ? lastActivity.payment : 0,
     accepted: lastActivity ? lastActivity.accepted : [],
   });
@@ -137,7 +137,7 @@ exports.updateActivityById = async (req, res) => {
     const { id } = req.params;
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(11, 0, 0, 0);
     req.body.date = today;
 
     const activity = await DailyBuyerActivity.findByIdAndUpdate(id, req.body, {
@@ -160,7 +160,7 @@ exports.deleteActivityById = async (req, res) => {
     const { id } = req.params;
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(11, 0, 0, 0);
     req.body.date = today;
 
     const activity = await DailyBuyerActivity.findByIdAndDelete(id, req.body, {

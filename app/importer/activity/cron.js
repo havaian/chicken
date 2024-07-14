@@ -8,7 +8,7 @@
 
 //     for (const buyer of buyers) {
 //         const today = new Date();
-//         today.setHours(0, 0, 0, 0);
+//         today.setHours(11, 0, 0, 0);
 
 //         let activity = await DailyBuyerActivity.findOne({ buyer: buyer._id, date: today });
 

@@ -11,13 +11,13 @@ router.get("/all", activityController.getAllActivities);
 // Get activities for the last 30 days
 router.get("/last30days", activityController.getLast30DaysActivities);
 
-// Get today"s activity
+// Get today's activity
 router.get("/today", activityController.getTodaysActivity);
 
-// Update an activity by ID or today"s activity if no ID is provided
+// Update an activity by ID or today's activity if no ID is provided
 router.put("/:id?", activityController.updateActivityById);
 
-// Delete an activity by ID or today"s activity if no ID is provided
+// Delete an activity by ID or today's activity if no ID is provided
 router.delete("/:id?", activityController.deleteActivityById);
 
 module.exports = router;
