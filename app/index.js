@@ -5,7 +5,7 @@ const courierRoutes = require("./courier/routes");
 const warehouseRoutes = require("./warehouse/routes");
 const importerRoutes = require("./importer/routes");
 // const adminRoutes = require("./admin/routes");
-const { logger, readLog } = require("./utils/logs");
+const { logger, readLog } = require("./utils/logging");
 
 const app = express();
 app.use(bodyParser.json());
@@ -64,7 +64,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.get("/logs", (req, res) => {
+app.get("/logging", (req, res) => {
   try {
     const result = readLog();
     res.set("Content-Type", "text/plain");

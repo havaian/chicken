@@ -1,5 +1,5 @@
 const Courier = require("./model");
-const { logger, readLog } = require("../utils/logs");
+const { logger, readLog } = require("../utils/logging");
 
 // Create a new courier
 exports.createCourier = async (req, res) => {

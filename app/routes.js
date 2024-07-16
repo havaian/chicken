@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { findRecordByPhone } = require("./controller"); // Adjust path as per your project structure
-const { logger, readLog } = require("./utils/logs");
+const { logger, readLog } = require("./utils/logging");
 
 // Route to find record by phone number
 router.get("/find-by-phone/:phoneNumber", async (req, res) => {

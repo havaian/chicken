@@ -2,7 +2,7 @@ const DailyBuyerActivity = require("./model");
 const Buyer = require("../model");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
-const { logger, readLog } = require("../../utils/logs");
+const { logger, readLog } = require("../../utils/logging");
 
 const moment = require('moment-timezone');
 

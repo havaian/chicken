@@ -1,6 +1,6 @@
 const Courier = require("./courier/model");
 const Warehouse = require("./warehouse/model");
-const { logger, readLog } = require("./utils/logs");
+const { logger, readLog } = require("./utils/logging");
 
 // Function to standardize phone number
 const standardizePhoneNumber = (phoneNumber) => {

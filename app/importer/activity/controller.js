@@ -2,7 +2,7 @@ const DailyImporterActivity = require("./model");
 const Importer = require("../model");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
-const { logger, readLog } = require("../../utils/logs");
+const { logger, readLog } = require("../../utils/logging");
 const moment = require('moment-timezone');
 
 // Function to get 6 a.m. in UTC+5 for the current day

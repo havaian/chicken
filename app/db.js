@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { logger, readLog } = require("./utils/logs");
+const { logger, readLog } = require("./utils/logging");
 
 // Connect to MongoDB
 mongoose

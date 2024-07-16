@@ -2,7 +2,7 @@ const Courier = require("../model");
 const DailyActivity = require("./model");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
-const { logger, readLog } = require("../../utils/logs");
+const { logger, readLog } = require("../../utils/logging");
 const moment = require('moment-timezone');
 
 // Helper function to check if a string is a valid ObjectId

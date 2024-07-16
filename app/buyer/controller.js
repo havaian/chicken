@@ -1,5 +1,5 @@
 const Buyer = require("./model");
-const { logger, readLog } = require("../utils/logs");
+const { logger, readLog } = require("../utils/logging");
 
 // Create a new buyer
 exports.createBuyer = async (req, res) => {

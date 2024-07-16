@@ -1,5 +1,5 @@
 const DailyActivity = require("./model");
-const { logger, readLog } = require("../../utils/logs");
+const { logger, readLog } = require("../../utils/logging");
 const moment = require('moment-timezone');
 
 // Function to get 6 a.m. in UTC+5 for the current day
