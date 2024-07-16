@@ -27,7 +27,20 @@ const dailyActivitySchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    // submitted by warehouse user
+    remained: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    // automatically calculated
     current: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    // used for undoing purposes
+    old_current: {
       type: Number,
       required: true,
       default: 0,

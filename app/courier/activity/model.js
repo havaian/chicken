@@ -41,6 +41,11 @@ const dailyActivitySchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    accepted_today: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
     broken: {
       type: Number, // Changed to Number for consistency
       required: true,

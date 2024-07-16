@@ -4,23 +4,33 @@ const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 const { logger, readLog } = require("../../utils/logs");
 
+const moment = require('moment-timezone');
+
+// Function to get 6 a.m. in UTC+5 for the current day
+const getSixAMUTCPlusFive = () => {
+  const timeZone = 'Asia/Tashkent'; // UTC+5
+  const sixAM = moment.tz(timeZone).set({ hour: 6, minute: 0, second: 0, millisecond: 0 });
+  return sixAM;
+};
+
+// Example usage
+const todaySixAM = getSixAMUTCPlusFive().format();
+
 // Create a new daily buyer activity
 exports.createDailyActivity = async (req, res) => {
   try {
     const { buyer } = req.body;
-    const date = new Date();
+    const date = todaySixAM;
 
     // Ensure the date is stripped of time for comparison
-    const startOfDay = new Date(date);
-    if (isNaN(startOfDay.getTime())) {
+    if (isNaN(date.getTime())) {
       return res.status(400).json({ message: "❌ Invalid date format." });
     }
-    startOfDay.setHours(11, 0, 0, 0);
 
     // Check if an activity already exists for the given buyer and date
     const existingActivity = await DailyBuyerActivity.findOne({
       buyer: buyer,
-      date: startOfDay,
+      date: date,
     });
 
     if (existingActivity) {
@@ -33,7 +43,7 @@ exports.createDailyActivity = async (req, res) => {
     }
 
     // Create new daily activity
-    const activity = new DailyBuyerActivity({ ...req.body, date: startOfDay });
+    const activity = new DailyBuyerActivity({ ...req.body, date: date });
     await activity.save();
     res.status(201).json(activity);
   } catch (error) {
@@ -79,10 +89,8 @@ exports.getLast30DaysActivities = async (req, res) => {
 exports.getTodaysActivity = async (req, res) => {
   try {
     const { buyerId } = req.params;
-    const today = new Date();
-    today.setHours(11, 0, 0, 0);
     const options = {
-      date: today,
+      date: todaySixAM,
     };
 
     let buyerExists;
@@ -122,7 +130,7 @@ exports.createTodaysActivity = async (buyerId) => {
 
   const todayActivity = new DailyBuyerActivity({
     buyer: buyerId,
-    date: new Date().setHours(11, 0, 0, 0),
+    date: todaySixAM,
     payment: lastActivity ? lastActivity.payment : 0,
     accepted: lastActivity ? lastActivity.accepted : [],
   });
@@ -135,10 +143,7 @@ exports.createTodaysActivity = async (buyerId) => {
 exports.updateActivityById = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const today = new Date();
-    today.setHours(11, 0, 0, 0);
-    req.body.date = today;
+    req.body.date = todaySixAM;
 
     const activity = await DailyBuyerActivity.findByIdAndUpdate(id, req.body, {
       new: true,
@@ -158,10 +163,7 @@ exports.updateActivityById = async (req, res) => {
 exports.deleteActivityById = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const today = new Date();
-    today.setHours(11, 0, 0, 0);
-    req.body.date = today;
+    req.body.date = todaySixAM;
 
     const activity = await DailyBuyerActivity.findByIdAndDelete(id, req.body, {
       new: true,

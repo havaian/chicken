@@ -3,28 +3,38 @@ const DailyActivity = require("./model");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 const { logger, readLog } = require("../../utils/logs");
+const moment = require('moment-timezone');
 
 // Helper function to check if a string is a valid ObjectId
 const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
 };
 
+// Function to get 6 a.m. in UTC+5 for the current day
+const getSixAMUTCPlusFive = () => {
+  const timeZone = 'Asia/Tashkent'; // UTC+5
+  const sixAM = moment.tz(timeZone).set({ hour: 6, minute: 0, second: 0, millisecond: 0 });
+  return sixAM;
+};
+
+// Example usage
+const todaySixAM = getSixAMUTCPlusFive().format();
+
 // Create a new daily activity
 exports.createDailyActivity = async (req, res) => {
   try {
     const { courier } = req.body;
+    const date = todaySixAM;
 
     // Ensure the date is stripped of time for comparison
-    const startOfDay = new Date();
-    if (isNaN(startOfDay.getTime())) {
+    if (isNaN(date.getTime())) {
       return res.status(400).json({ message: "❌ Invalid date format." });
     }
-    startOfDay.setHours(11, 0, 0, 0);
 
     // Check if an activity already exists for the given courier and date
     const existingActivity = await DailyActivity.findOne({
       courier: courier,
-      date: startOfDay,
+      date: date,
     });
 
     if (existingActivity) {
@@ -38,7 +48,7 @@ exports.createDailyActivity = async (req, res) => {
     }
 
     // Create new daily activity
-    const activity = new DailyActivity({ ...req.body, date: startOfDay });
+    const activity = new DailyActivity({ ...req.body, date: date });
     await activity.save();
     res.status(201).json(activity);
   } catch (error) {
@@ -77,8 +87,7 @@ exports.getLast30DaysActivities = async (req, res) => {
 exports.getTodaysActivity = async (req, res) => {
   try {
     const { courierId } = req.params;
-    const today = new Date();
-    today.setHours(11, 0, 0, 0);
+    const date = todaySixAM;
 
     // Check if courierId is a valid ObjectId
     let courierExists;
@@ -97,7 +106,7 @@ exports.getTodaysActivity = async (req, res) => {
 
     let activity = await DailyActivity.findOne({
       courier: courierExists._id,
-      date: today,
+      date: date,
     });
 
     if (!activity) {
@@ -115,13 +124,9 @@ exports.createTodaysActivity = async (courierId) => {
     { date: -1 }
   );
 
-  // Create a new date instance for today
-  const today = new Date();
-  today.setHours(11, 0, 0, 0);
-
   const todayActivity = new DailyActivity({
     courier: courierId,
-    date: today,
+    date: todaySixAM,
     by_morning: lastActivity ? lastActivity.current : 0,
     current: lastActivity ? lastActivity.current : 0,
     broken: 0,
@@ -136,6 +141,8 @@ exports.createTodaysActivity = async (courierId) => {
 // Update an activity by ID
 exports.updateActivityById = async (req, res) => {
   try {
+    req.body.date = todaySixAM;
+
     const activity = await DailyActivity.findByIdAndUpdate(
       req.params.id,
       req.body,
