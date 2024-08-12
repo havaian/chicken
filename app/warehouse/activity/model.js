@@ -13,62 +13,62 @@ const dailyActivitySchema = new mongoose.Schema(
       default: [],
     },
     accepted: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    accepted_from: {
       type: Array,
       required: true,
       default: [],
     },
     by_morning: {
-      type: Number,
+      type: Object,
       required: true,
-      default: 0,
+      default: {},
     },
     // submitted by warehouse user
     remained: {
-      type: Number,
+      type: Object,
       required: true,
-      default: 0,
+      default: {},
     },
     // automatically calculated
     current: {
-      type: Number,
+      type: Object,
       required: true,
-      default: 0,
+      default: {},
     },
     // used for undoing purposes
     old_current: {
-      type: Number,
+      type: Object,
       required: true,
-      default: 0,
+      default: {},
     },
     incision: {
-      type: Number,
+      type: Object,
+      required: true,
+      default: {},
+    },
+    melange: {
+      type: Object,
       required: true,
       default: 0,
     },
-    melange: {
-      type: Number,
+    melange_by_warehouse: {
+      type: Object,
       required: true,
       default: 0,
     },
     broken: {
-      type: Number,
+      type: Object,
       required: true,
-      default: 0,
+      default: {},
     },
     intact: {
-      type: Number,
+      type: Object,
       required: true,
-      default: 0,
+      default: {},
     },
     deficit: {
-      type: Number,
+      type: Object,
       required: true,
-      default: 0,
+      default: {},
     },
   },
   {

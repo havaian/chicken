@@ -9,13 +9,10 @@ const getSixAMUTCPlusFive = () => {
   return sixAM;
 };
 
-// Example usage
-const todaySixAM = getSixAMUTCPlusFive().format();
-
 // Create a new daily activity
 exports.createDailyActivity = async (req, res) => {
   try {
-    const date = todaySixAM;
+    const date = getSixAMUTCPlusFive().format();
 
     // Ensure the date is stripped of time for comparison
     if (isNaN(date.getTime())) {
@@ -70,7 +67,7 @@ exports.getLast30DaysActivities = async (req, res) => {
 // Get today's activity
 exports.getTodaysActivity = async (req, res) => {
   try {
-    const date = todaySixAM;
+    const date = getSixAMUTCPlusFive().format();
 
     let activity = await DailyActivity.findOne({ date: date });
     
@@ -89,10 +86,10 @@ const createTodaysActivity = async () => {
   const lastActivity = await DailyActivity.findOne().sort({ date: -1 });
 
   const todayActivity = new DailyActivity({
-    date: todaySixAM,
-    by_morning: lastActivity ? lastActivity.current : 0,
-    current: lastActivity ? lastActivity.current : 0,
-    accepted: 0
+    date: getSixAMUTCPlusFive().format(),
+    by_morning: lastActivity ? lastActivity.current : {},
+    current: lastActivity ? lastActivity.current : {},
+    accepted: []
   });
 
   await todayActivity.save();
@@ -105,15 +102,15 @@ exports.updateActivityById = async (req, res) => {
     let activity;
     
     if (req.params.id) {
-      req.body.date = todaySixAM;
+      req.body.date = getSixAMUTCPlusFive().format();
 
       activity = await DailyActivity.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
       if (!activity) {
         return res.status(404).json({ message: "❌ Activity not found" });
       }
     } else {
-      req.body.date = todaySixAM;
-      activity = await DailyActivity.findOneAndUpdate({ date: todaySixAM }, req.body, { new: true, runValidators: true });
+      req.body.date = getSixAMUTCPlusFive().format();
+      activity = await DailyActivity.findOneAndUpdate({ date: getSixAMUTCPlusFive().format() }, req.body, { new: true, runValidators: true });
       if (!activity) {
         return res.status(404).json({ message: "❌ Today's activity not found" });
       }
@@ -135,7 +132,7 @@ exports.deleteActivityById = async (req, res) => {
         return res.status(404).json({ message: "❌ Activity not found" });
       }
     } else {
-      activity = await DailyActivity.findOneAndDelete({ date: todaySixAM });
+      activity = await DailyActivity.findOneAndDelete({ date: getSixAMUTCPlusFive().format() });
       if (!activity) {
         return res.status(404).json({ message: "❌ Today's activity not found" });
       }

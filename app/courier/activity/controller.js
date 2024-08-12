@@ -17,14 +17,11 @@ const getSixAMUTCPlusFive = () => {
   return sixAM;
 };
 
-// Example usage
-const todaySixAM = getSixAMUTCPlusFive().format();
-
 // Create a new daily activity
 exports.createDailyActivity = async (req, res) => {
   try {
     const { courier } = req.body;
-    const date = todaySixAM;
+    const date = getSixAMUTCPlusFive().format();
 
     // Ensure the date is stripped of time for comparison
     if (isNaN(date.getTime())) {
@@ -87,7 +84,7 @@ exports.getLast30DaysActivities = async (req, res) => {
 exports.getTodaysActivity = async (req, res) => {
   try {
     const { courierId } = req.params;
-    const date = todaySixAM;
+    const date = getSixAMUTCPlusFive().format();
 
     // Check if courierId is a valid ObjectId
     let courierExists;
@@ -126,12 +123,8 @@ exports.createTodaysActivity = async (courierId) => {
 
   const todayActivity = new DailyActivity({
     courier: courierId,
-    date: todaySixAM,
-    by_morning: lastActivity ? lastActivity.current : 0,
-    current: lastActivity ? lastActivity.current : 0,
-    broken: 0,
-    earnings: 0,
-    expenses: 0,
+    date: getSixAMUTCPlusFive().format(),
+    current: lastActivity ? lastActivity.current : {},
   });
 
   await todayActivity.save();
@@ -141,7 +134,7 @@ exports.createTodaysActivity = async (courierId) => {
 // Update an activity by ID
 exports.updateActivityById = async (req, res) => {
   try {
-    req.body.date = todaySixAM;
+    req.body.date = getSixAMUTCPlusFive().format();
 
     const activity = await DailyActivity.findByIdAndUpdate(
       req.params.id,

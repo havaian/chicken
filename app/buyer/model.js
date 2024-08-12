@@ -7,10 +7,6 @@ const buyerSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    resp_person: {
-      type: String,
-      required: false,
-    },
     phone_num: {
       type: String,
       required: false,

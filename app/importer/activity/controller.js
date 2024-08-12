@@ -12,14 +12,11 @@ const getSixAMUTCPlusFive = () => {
   return sixAM;
 };
 
-// Example usage
-const todaySixAM = getSixAMUTCPlusFive().format();
-
 // Create a new daily importer activity
 exports.createDailyActivity = async (req, res) => {
   try {
     const { importer } = req.body;
-    const date = todaySixAM;
+    const date = getSixAMUTCPlusFive().format();
 
     // Ensure the date is stripped of time for comparison
     if (isNaN(date.getTime())) {
@@ -92,7 +89,7 @@ exports.getLast30DaysActivities = async (req, res) => {
 exports.getTodaysActivity = async (req, res) => {
   try {
     const { importerId } = req.params;
-    const date = todaySixAM;
+    const date = getSixAMUTCPlusFive().format();
     const options = {
       date: date,
     };
@@ -134,9 +131,8 @@ exports.createTodaysActivity = async (importerId) => {
 
   const todayActivity = new DailyImporterActivity({
     importer: importerId,
-    date: todaySixAM,
-    payment: lastActivity ? lastActivity.payment : 0,
-    accepted: lastActivity ? lastActivity.accepted : [],
+    date: getSixAMUTCPlusFive().format(),
+    amount: [],
   });
 
   await todayActivity.save();
@@ -147,7 +143,7 @@ exports.createTodaysActivity = async (importerId) => {
 exports.updateActivityById = async (req, res) => {
   try {
     const { id } = req.params;
-    req.body.date = todaySixAM;
+    req.body.date = getSixAMUTCPlusFive().format();
 
     const activity = await DailyImporterActivity.findByIdAndUpdate(
       id,

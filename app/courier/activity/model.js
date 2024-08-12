@@ -22,24 +22,29 @@ const dailyActivitySchema = new mongoose.Schema(
       },
     },
     by_morning: {
-      type: Number,
+      type: Object,
       required: true,
-      default: 0,
+      default: {},
     },
     current: {
-      type: Number,
+      type: Object,
       required: true,
-      default: 0,
+      default: {},
     },
     current_by_courier: {
+      type: Object,
+      required: true,
+      default: {},
+    },
+    money_by_courier: {
       type: Number,
       required: true,
       default: 0,
     },
     accepted: {
-      type: Number,
+      type: Object,
       required: true,
-      default: 0,
+      default: {},
     },
     accepted_today: {
       type: Boolean,
@@ -47,7 +52,22 @@ const dailyActivitySchema = new mongoose.Schema(
       default: false,
     },
     broken: {
-      type: Number, // Changed to Number for consistency
+      type: Object,
+      required: true,
+      default: {},
+    },
+    incision: {
+      type: Object,
+      required: true,
+      default: {},
+    },
+    melange: {
+      type: Object,
+      required: true,
+      default: 0,
+    },
+    melange_by_courier: {
+      type: Object,
       required: true,
       default: 0,
     },
@@ -58,6 +78,11 @@ const dailyActivitySchema = new mongoose.Schema(
     expenses: {
       type: Number,
       default: 0,
+    },
+    day_finished: {
+      type: Boolean,
+      required: true,
+      default: false,
     },
   },
   {

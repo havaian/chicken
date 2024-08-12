@@ -12,9 +12,9 @@ const dailyImporterActivitySchema = new mongoose.Schema(
       required: true,
     },
     amount: {
-      type: Number,
+      type: Array,
       required: true,
-      default: 0,
+      default: [],
     },
   },
   {

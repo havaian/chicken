@@ -13,14 +13,11 @@ const getSixAMUTCPlusFive = () => {
   return sixAM;
 };
 
-// Example usage
-const todaySixAM = getSixAMUTCPlusFive().format();
-
 // Create a new daily buyer activity
 exports.createDailyActivity = async (req, res) => {
   try {
     const { buyer } = req.body;
-    const date = todaySixAM;
+    const date = getSixAMUTCPlusFive().format();
 
     // Ensure the date is stripped of time for comparison
     if (isNaN(date.getTime())) {
@@ -90,7 +87,7 @@ exports.getTodaysActivity = async (req, res) => {
   try {
     const { buyerId } = req.params;
     const options = {
-      date: todaySixAM,
+      date: getSixAMUTCPlusFive().format(),
     };
 
     let buyerExists;
@@ -130,9 +127,8 @@ exports.createTodaysActivity = async (buyerId) => {
 
   const todayActivity = new DailyBuyerActivity({
     buyer: buyerId,
-    date: todaySixAM,
-    payment: lastActivity ? lastActivity.payment : 0,
-    accepted: lastActivity ? lastActivity.accepted : [],
+    date: getSixAMUTCPlusFive().format(),
+    debt: lastActivity ? lastActivity.debt : 0,
   });
 
   await todayActivity.save();
@@ -143,7 +139,7 @@ exports.createTodaysActivity = async (buyerId) => {
 exports.updateActivityById = async (req, res) => {
   try {
     const { id } = req.params;
-    req.body.date = todaySixAM;
+    req.body.date = getSixAMUTCPlusFive().format();
 
     const activity = await DailyBuyerActivity.findByIdAndUpdate(id, req.body, {
       new: true,
@@ -163,7 +159,7 @@ exports.updateActivityById = async (req, res) => {
 exports.deleteActivityById = async (req, res) => {
   try {
     const { id } = req.params;
-    req.body.date = todaySixAM;
+    req.body.date = getSixAMUTCPlusFive().format();
 
     const activity = await DailyBuyerActivity.findByIdAndDelete(id, req.body, {
       new: true,
