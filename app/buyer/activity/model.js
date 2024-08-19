@@ -21,6 +21,11 @@ const dailyBuyerActivitySchema = new mongoose.Schema(
       required: true,
       default: [],
     },
+    price: {
+      type: Object,
+      required: true,
+      default: {},
+    }
   },
   {
     timestamps: true,

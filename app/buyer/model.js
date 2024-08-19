@@ -20,6 +20,19 @@ const buyerSchema = new mongoose.Schema(
       type: Array,
       required: false
     },
+    deactivated: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    categories: {
+      type: Array,
+      required: false,
+    },
+    debt_limit: {
+      type: Number,
+      required: false,
+    }
   },
   {
     timestamps: true,

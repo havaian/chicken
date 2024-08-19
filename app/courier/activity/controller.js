@@ -104,6 +104,7 @@ exports.getTodaysActivity = async (req, res) => {
     let activity = await DailyActivity.findOne({
       courier: courierExists._id,
       date: date,
+      day_finished: false
     });
 
     if (!activity) {

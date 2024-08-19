@@ -11,6 +11,9 @@ router.get("/all/:buyerId?", activityController.getAllActivities);
 // Get activities for the last 30 days
 router.get("/last30days/:buyerId?", activityController.getLast30DaysActivities);
 
+// New route to get today's activities for all buyers
+router.get("/today/all", activityController.getAllTodaysActivities);
+
 // Get today's activity
 router.get("/today/:buyerId?", activityController.getTodaysActivity);
 

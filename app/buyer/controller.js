@@ -1,6 +1,8 @@
 const Buyer = require("./model");
 const { logger, readLog } = require("../utils/logging");
 
+const mongoose = require("mongoose");
+
 // Create a new buyer
 exports.createBuyer = async (req, res) => {
   try {
@@ -27,16 +29,23 @@ exports.getAllBuyers = async (req, res) => {
 // Get a single buyer by ID
 exports.getBuyerById = async (req, res) => {
   try {
+    const { id } = req.params;
+
+    // Check if the id is a valid ObjectId
+    const isObjectId = mongoose.Types.ObjectId.isValid(id);
+
     const buyer = await Buyer.findOne({
       $or: [
-        { full_name: req.params.id },
-        { phone_num: req.params.id },
-        { _id: req.params.id },
-      ],
+        isObjectId ? { _id: id } : null,        // Search by _id if valid ObjectId
+        { full_name: id },                      // Search by full_name
+        { phone_num: id },                      // Search by phone_num
+      ].filter(Boolean), // Filter out nulls (for invalid ObjectId cases)
     });
+
     if (!buyer) {
       return res.status(404).json({ message: "❌ Buyer not found" });
     }
+
     res.status(200).json(buyer);
   } catch (error) {
     logger.info(error);
@@ -50,6 +59,10 @@ exports.getBuyersByName = async (req, res) => {
     const nameQuery = req.body.client_name;
     const buyers = await Buyer.find({
       full_name: new RegExp(nameQuery, "i"),
+      $or: [
+        { deactivated: false },
+        { deactivated: { $exists: false } }
+      ]
     }).limit(50);
     if (buyers.length === 0) {
       return res.status(404).json({ message: "❌ No buyers found" });

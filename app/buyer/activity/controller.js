@@ -83,6 +83,104 @@ exports.getLast30DaysActivities = async (req, res) => {
   }
 };
 
+// exports.getAllTodaysActivities = async (req, res) => {
+//   try {
+//     const todayStart = getSixAMUTCPlusFive().format();
+//     const todayEnd = getSixAMUTCPlusFive().add(1, 'days').format();
+
+//     // Get all unique buyers
+//     const allBuyers = await Buyer.find({}, '_id');
+
+//     // Array to store all activities
+//     let allActivities = [];
+
+//     // Process each buyer
+//     for (const buyer of allBuyers) {
+//       // Try to find today's activity for the buyer
+//       let activity = await DailyBuyerActivity.findOne({
+//         buyer: buyer._id,
+//         date: {
+//           $gte: todayStart,
+//           $lt: todayEnd
+//         }
+//       }).select('_id price debt buyer');
+
+//       // If no activity found, create one
+//       if (!activity) {
+//         activity = await this.createTodaysActivity(buyer._id);
+//       }
+
+//       // Format and add the activity to the array
+//       allActivities.push({
+//         _id: activity._id,
+//         price: activity.price,
+//         buyer: activity.buyer,
+//         debt: activity.debt
+//       });
+//     }
+
+//     res.status(200).json(allActivities);
+//   } catch (error) {
+//     logger.info(error);
+//     res.status(500).json({ message: "❌ Error retrieving today's activities for all buyers", error: error.message });
+//   }
+// };
+
+exports.getAllTodaysActivities = async (req, res) => {
+  try {
+    const todayStart = getSixAMUTCPlusFive().format();
+    const todayEnd = getSixAMUTCPlusFive().add(1, 'days').format();
+
+    // Get all unique buyers
+    const allBuyers = await Buyer.find({}, '_id');
+
+    // Array to store all activities
+    let allActivities = [];
+
+    // Process each buyer
+    for (const buyer of allBuyers) {
+      // Try to find today's activity for the buyer
+      let activity = await DailyBuyerActivity.findOne({
+        buyer: buyer._id,
+        date: {
+          $gte: todayStart,
+          $lt: todayEnd
+        }
+      }).select('_id price debt buyer');
+
+      // If no activity found for today, get the most recent activity
+      if (!activity) {
+        activity = await DailyBuyerActivity.findOne({
+          buyer: buyer._id
+        }).sort({ date: -1 }).select('_id price debt buyer');
+      }
+
+      // If still no activity found, create a new one with default values
+      if (!activity) {
+        activity = {
+          _id: null,
+          price: {}, // You might want to set default prices here
+          buyer: buyer._id,
+          debt: 0
+        };
+      }
+
+      // Add the activity to the array
+      allActivities.push({
+        _id: activity._id,
+        price: activity.price,
+        buyer: activity.buyer,
+        debt: activity.debt
+      });
+    }
+
+    res.status(200).json(allActivities);
+  } catch (error) {
+    logger.info(error);
+    res.status(500).json({ message: "❌ Error retrieving activities for all buyers", error: error.message });
+  }
+};
+
 exports.getTodaysActivity = async (req, res) => {
   try {
     const { buyerId } = req.params;
@@ -128,7 +226,7 @@ exports.createTodaysActivity = async (buyerId) => {
   const todayActivity = new DailyBuyerActivity({
     buyer: buyerId,
     date: getSixAMUTCPlusFive().format(),
-    debt: lastActivity ? lastActivity.debt : 0,
+    debt: lastActivity ? lastActivity.debt : 0
   });
 
   await todayActivity.save();

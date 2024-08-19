@@ -14,8 +14,8 @@ const courierSchema = new mongoose.Schema(
     },
     car_num: {
       type: String,
-      required: true,
-      unique: true,
+      required: false,
+      unique: false,
     },
     telegram_chat_id: {
       type: String,

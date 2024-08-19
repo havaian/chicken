@@ -34,6 +34,16 @@ app.use(morgan("dev", { stream: log4jsStream }));
 
 // Middleware to capture and log request and response details
 app.use((req, res, next) => {
+  const allowedHost = ["http://141.98.153.217:5173/"];  
+
+
+  // Check if the Host header matches the allowed host
+  if (req.headers.host !== "127.0.0.1:16004" && req.headers.host !== "141.98.153.217:16004" && req.headers.host !== "back:16004" && !allowedHost.includes(req.headers.referer)) {
+    res.status(403).json({ error: "Forbidden: Access is denied." });
+    return;
+  }
+
+  // Middleware to log request and response details
   const originalSend = res.send;
 
   res.send = function (data) {
