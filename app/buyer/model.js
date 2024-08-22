@@ -33,8 +33,8 @@ const buyerSchema = new mongoose.Schema(
     },
     deleted: {
       type: Boolean,
-      default: false,
       required: true,
+      default: false,
     }
   },
   {
@@ -47,7 +47,7 @@ const buyerSchema = new mongoose.Schema(
 buyerSchema.index({ location: "2dsphere" }); // Index for geospatial queries
 
 buyerSchema.index({ full_name: 1, deleted: 1 }, { unique: true, partialFilterExpression: { deleted: false } });
-buyerSchema.index({ phone_num: 1, deleted: 1 }, { unique: true, partialFilterExpression: { deleted: false } });
+// buyerSchema.index({ phone_num: 1, deleted: 1 }, { unique: true, partialFilterExpression: { deleted: false } });
 
 const Buyer = mongoose.model("Buyer", buyerSchema);
 
