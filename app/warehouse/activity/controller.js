@@ -2,36 +2,34 @@ const DailyActivity = require("./model");
 const { logger, readLog } = require("../../utils/logging");
 const moment = require('moment-timezone');
 
-// Function to get 6 a.m. in UTC+5 for the current day
-const getSixAMUTCPlusFive = () => {
+// Function to get today's 6 a.m. in UTC+5
+const getTodaySixAMUTCPlusFive = () => {
   const timeZone = 'Asia/Tashkent'; // UTC+5
-  const sixAM = moment.tz(timeZone).set({ hour: 6, minute: 0, second: 0, millisecond: 0 });
-  return sixAM;
+  return moment.tz(timeZone).startOf('day').add(6, 'hours');
+};
+
+// Function to get the start of the current "day" (6 a.m. today or 6 a.m. yesterday if it's before 6 a.m.)
+const getCurrentDayStart = () => {
+  const now = moment.tz('Asia/Tashkent');
+  const todaySixAM = getTodaySixAMUTCPlusFive();
+  return now.isBefore(todaySixAM) ? todaySixAM.subtract(1, 'day') : todaySixAM;
 };
 
 // Create a new daily activity
 exports.createDailyActivity = async (req, res) => {
   try {
-    const date = getSixAMUTCPlusFive().format();
-
-    // Ensure the date is stripped of time for comparison
-    if (isNaN(date.getTime())) {
-      return res.status(400).json({ message: "❌ Invalid date format." });
-    }
-
-    // Check if an activity already exists for the given date
-    const existingActivity = await DailyActivity.findOne({ 
-      date: date
+    const lastActivity = await DailyActivity.findOne().sort({ date: -1 });
+  
+    const todayActivity = new DailyActivity({
+      ...req.body,
+      date: getCurrentDayStart().toDate(),
+      by_morning: lastActivity ? lastActivity.current : {},
+      current: lastActivity ? lastActivity.current : {},
+      accepted: []
     });
-
-    if (existingActivity) {
-      return res.status(400).json({ message: "❌ Activity on the given date already exists." });
-    }
-
-    // Create new daily activity
-    const activity = new DailyActivity({ ...req.body, date: date });
-    await activity.save();
-    res.status(201).json(activity);
+  
+    await todayActivity.save();
+    res.status(201).json(todayActivity);
   } catch (error) {
     logger.info(error);
     res.status(400).json({ message: error.message });
@@ -67,9 +65,15 @@ exports.getLast30DaysActivities = async (req, res) => {
 // Get today's activity
 exports.getTodaysActivity = async (req, res) => {
   try {
-    const date = getSixAMUTCPlusFive().format();
+    const dayStart = getCurrentDayStart();
+    const dayEnd = moment(dayStart).add(1, 'day');
 
-    let activity = await DailyActivity.findOne({ date: date });
+    let activity = await DailyActivity.findOne({
+      date: {
+        $gte: dayStart.toDate(),
+        $lt: dayEnd.toDate()
+      }
+    });
     
     if (!activity) {
       activity = await createTodaysActivity();
@@ -86,7 +90,7 @@ const createTodaysActivity = async () => {
   const lastActivity = await DailyActivity.findOne().sort({ date: -1 });
 
   const todayActivity = new DailyActivity({
-    date: getSixAMUTCPlusFive().format(),
+    date: getCurrentDayStart().toDate(),
     by_morning: lastActivity ? lastActivity.current : {},
     current: lastActivity ? lastActivity.current : {},
     accepted: []
@@ -102,15 +106,24 @@ exports.updateActivityById = async (req, res) => {
     let activity;
     
     if (req.params.id) {
-      req.body.date = getSixAMUTCPlusFive().format();
-
       activity = await DailyActivity.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
       if (!activity) {
         return res.status(404).json({ message: "❌ Activity not found" });
       }
     } else {
-      req.body.date = getSixAMUTCPlusFive().format();
-      activity = await DailyActivity.findOneAndUpdate({ date: getSixAMUTCPlusFive().format() }, req.body, { new: true, runValidators: true });
+      const dayStart = getCurrentDayStart();
+      const dayEnd = moment(dayStart).add(1, 'day');
+      
+      activity = await DailyActivity.findOneAndUpdate(
+        { 
+          date: {
+            $gte: dayStart.toDate(),
+            $lt: dayEnd.toDate()
+          }
+        }, 
+        req.body, 
+        { new: true, runValidators: true }
+      );
       if (!activity) {
         return res.status(404).json({ message: "❌ Today's activity not found" });
       }
@@ -132,7 +145,15 @@ exports.deleteActivityById = async (req, res) => {
         return res.status(404).json({ message: "❌ Activity not found" });
       }
     } else {
-      activity = await DailyActivity.findOneAndDelete({ date: getSixAMUTCPlusFive().format() });
+      const dayStart = getCurrentDayStart();
+      const dayEnd = moment(dayStart).add(1, 'day');
+      
+      activity = await DailyActivity.findOneAndDelete({
+        date: {
+          $gte: dayStart.toDate(),
+          $lt: dayEnd.toDate()
+        }
+      });
       if (!activity) {
         return res.status(404).json({ message: "❌ Today's activity not found" });
       }

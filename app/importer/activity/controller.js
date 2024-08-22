@@ -5,44 +5,49 @@ const ObjectId = mongoose.Types.ObjectId;
 const { logger, readLog } = require("../../utils/logging");
 const moment = require('moment-timezone');
 
-// Function to get 6 a.m. in UTC+5 for the current day
-const getSixAMUTCPlusFive = () => {
+// Function to get today's 6 a.m. in UTC+5
+const getTodaySixAMUTCPlusFive = () => {
   const timeZone = 'Asia/Tashkent'; // UTC+5
-  const sixAM = moment.tz(timeZone).set({ hour: 6, minute: 0, second: 0, millisecond: 0 });
-  return sixAM;
+  return moment.tz(timeZone).startOf('day').add(6, 'hours');
+};
+
+// Function to get the start of the current "day" (6 a.m. today or 6 a.m. yesterday if it's before 6 a.m.)
+const getCurrentDayStart = () => {
+  const now = moment.tz('Asia/Tashkent');
+  const todaySixAM = getTodaySixAMUTCPlusFive();
+  return now.isBefore(todaySixAM) ? todaySixAM.subtract(1, 'day') : todaySixAM;
 };
 
 // Create a new daily importer activity
 exports.createDailyActivity = async (req, res) => {
   try {
     const { importer } = req.body;
-    const date = getSixAMUTCPlusFive().format();
-
-    // Ensure the date is stripped of time for comparison
-    if (isNaN(date.getTime())) {
-      return res.status(400).json({ message: "❌ Invalid date format." });
-    }
+    const dayStart = getCurrentDayStart();
 
     // Check if an activity already exists for the given importer and date
     const existingActivity = await DailyImporterActivity.findOne({
       importer: importer,
-      date: date,
+      date: {
+        $gte: dayStart.toDate(),
+        $lt: moment(dayStart).add(1, 'day').toDate()
+      }
     });
 
     if (existingActivity) {
-      logger.info(
-        "❌ Activity for this importer on the given date already exists."
-      );
+      logger.info("❌ Activity for this importer on the given date already exists.");
       return res.status(400).json({
-        message:
-          "❌ Activity for this importer on the given date already exists.",
+        message: "❌ Activity for this importer on the given date already exists.",
       });
     }
+
+    const lastActivity = await DailyImporterActivity.findOne({ importer: importer }).sort({ date: -1 });
 
     // Create new daily activity
     const activity = new DailyImporterActivity({
       ...req.body,
-      date: date,
+      date: dayStart.toDate(),
+      amount: [],
+      // Add any other fields you want to initialize based on the last activity
     });
     await activity.save();
     res.status(201).json(activity);
@@ -70,9 +75,10 @@ exports.getAllActivities = async (req, res) => {
 // Get activities for the last 30 days
 exports.getLast30DaysActivities = async (req, res) => {
   try {
+    const thirtyDaysAgo = moment().subtract(30, 'days');
     const options = {
       date: {
-        $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+        $gte: thirtyDaysAgo.toDate(),
       },
     };
     if (req.params.importerId) {
@@ -89,9 +95,15 @@ exports.getLast30DaysActivities = async (req, res) => {
 exports.getTodaysActivity = async (req, res) => {
   try {
     const { importerId } = req.params;
-    const date = getSixAMUTCPlusFive().format();
+    
+    const dayStart = getCurrentDayStart();
+    const dayEnd = moment(dayStart).add(1, 'day');
+
     const options = {
-      date: date,
+      date: {
+        $gte: dayStart.toDate(),
+        $lt: dayEnd.toDate()
+      }
     };
 
     let importerExists;
@@ -115,43 +127,60 @@ exports.getTodaysActivity = async (req, res) => {
     let activity = await DailyImporterActivity.findOne(options);
 
     if (!activity) {
-      activity = await this.createTodaysActivity(importerExists._id);
+      activity = await createTodaysActivity(importerExists._id);
     }
 
     res.status(200).json(activity);
   } catch (error) {
+    logger.info(error);
     res.status(400).json({ message: error.message });
   }
 };
 
-exports.createTodaysActivity = async (importerId) => {
+const createTodaysActivity = async (importerId) => {
   const lastActivity = await DailyImporterActivity.findOne({
     importer: importerId,
   }).sort({ date: -1 });
 
   const todayActivity = new DailyImporterActivity({
     importer: importerId,
-    date: getSixAMUTCPlusFive().format(),
+    date: getCurrentDayStart().toDate(),
     amount: [],
+    // Add any other fields you want to initialize based on the last activity
   });
 
   await todayActivity.save();
   return todayActivity;
 };
 
-// Update an activity by ID
+// Update an activity by ID or today's activity if no ID is provided
 exports.updateActivityById = async (req, res) => {
   try {
-    const { id } = req.params;
-    req.body.date = getSixAMUTCPlusFive().format();
-
-    const activity = await DailyImporterActivity.findByIdAndUpdate(
-      id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!activity) {
-      return res.status(404).json({ message: "❌ Activity not found" });
+    let activity;
+    
+    if (req.params.id) {
+      activity = await DailyImporterActivity.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+      if (!activity) {
+        return res.status(404).json({ message: "❌ Activity not found" });
+      }
+    } else {
+      const dayStart = getCurrentDayStart();
+      const dayEnd = moment(dayStart).add(1, 'day');
+      
+      activity = await DailyImporterActivity.findOneAndUpdate(
+        { 
+          importer: req.body.importer,
+          date: {
+            $gte: dayStart.toDate(),
+            $lt: dayEnd.toDate()
+          }
+        }, 
+        req.body, 
+        { new: true, runValidators: true }
+      );
+      if (!activity) {
+        return res.status(404).json({ message: "❌ Today's activity not found" });
+      }
     }
     res.status(200).json(activity);
   } catch (error) {
@@ -160,14 +189,29 @@ exports.updateActivityById = async (req, res) => {
   }
 };
 
-// Delete an activity by ID
+// Delete an activity by ID or today's activity if no ID is provided
 exports.deleteActivityById = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const activity = await DailyImporterActivity.findByIdAndDelete(id);
-    if (!activity) {
-      return res.status(404).json({ message: "❌ Activity not found" });
+    let activity;
+    if (req.params.id) {
+      activity = await DailyImporterActivity.findByIdAndDelete(req.params.id);
+      if (!activity) {
+        return res.status(404).json({ message: "❌ Activity not found" });
+      }
+    } else {
+      const dayStart = getCurrentDayStart();
+      const dayEnd = moment(dayStart).add(1, 'day');
+      
+      activity = await DailyImporterActivity.findOneAndDelete({
+        importer: req.body.importer,
+        date: {
+          $gte: dayStart.toDate(),
+          $lt: dayEnd.toDate()
+        }
+      });
+      if (!activity) {
+        return res.status(404).json({ message: "❌ Today's activity not found" });
+      }
     }
     res.status(200).json({ message: "✅ Activity deleted successfully" });
   } catch (error) {
