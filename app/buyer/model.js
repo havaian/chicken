@@ -5,12 +5,10 @@ const buyerSchema = new mongoose.Schema(
     full_name: {
       type: String,
       required: true,
-      unique: true,
     },
     phone_num: {
       type: String,
       required: false,
-      unique: false,
     },
     location: {
       type: { type: String },
@@ -32,6 +30,11 @@ const buyerSchema = new mongoose.Schema(
     debt_limit: {
       type: Number,
       required: false,
+    },
+    deleted: {
+      type: Boolean,
+      default: false,
+      required: true,
     }
   },
   {
@@ -42,6 +45,9 @@ const buyerSchema = new mongoose.Schema(
 );
 
 buyerSchema.index({ location: "2dsphere" }); // Index for geospatial queries
+
+buyerSchema.index({ full_name: 1, deleted: 1 }, { unique: true, partialFilterExpression: { deleted: false } });
+buyerSchema.index({ phone_num: 1, deleted: 1 }, { unique: true, partialFilterExpression: { deleted: false } });
 
 const Buyer = mongoose.model("Buyer", buyerSchema);
 

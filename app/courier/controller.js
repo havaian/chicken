@@ -13,10 +13,10 @@ exports.createCourier = async (req, res) => {
   }
 };
 
-// Get all couriers
+// Get all couriers (non-deleted only)
 exports.getAllCouriers = async (req, res) => {
   try {
-    const couriers = await Courier.find();
+    const couriers = await Courier.find({ deleted: false });
     res.status(200).json(couriers);
   } catch (error) {
     logger.info(error);
@@ -24,7 +24,7 @@ exports.getAllCouriers = async (req, res) => {
   }
 };
 
-// Get a single courier by phone number or ID
+// Get a single courier by phone number or ID (including deleted)
 exports.getCourierById = async (req, res) => {
   try {
     const searchCriteria = {};
@@ -69,16 +69,36 @@ exports.updateCourierById = async (req, res) => {
   }
 };
 
-// Delete a courier by ID
+// Soft delete a courier by ID (set deleted to true)
 exports.deleteCourierById = async (req, res) => {
   try {
-    const courier = await Courier.findOneAndDelete({
-      phone_num: req.params.id,
-    });
+    const courier = await Courier.findOneAndUpdate(
+      { phone_num: req.params.id, deleted: false },
+      { deleted: true },
+      { new: true }
+    );
     if (!courier) {
-      return res.status(404).json({ message: "❌ Courier not found" });
+      return res.status(404).json({ message: "❌ Courier not found or already deleted" });
     }
-    res.status(200).json({ message: "✅ Courier deleted successfully" });
+    res.status(200).json({ message: "✅ Courier soft deleted successfully" });
+  } catch (error) {
+    logger.info(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// New function to get couriers by name (partial or complete match, non-deleted only)
+exports.getCouriersByName = async (req, res) => {
+  try {
+    const nameQuery = req.body.courier_name;
+    const couriers = await Courier.find({
+      full_name: new RegExp(nameQuery, "i"),
+      deleted: false
+    }).limit(50);
+    if (couriers.length === 0) {
+      return res.status(404).json({ message: "❌ No couriers found" });
+    }
+    res.status(200).json(couriers);
   } catch (error) {
     logger.info(error);
     res.status(400).json({ message: error.message });

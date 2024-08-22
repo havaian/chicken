@@ -15,10 +15,10 @@ exports.createBuyer = async (req, res) => {
   }
 };
 
-// Get all buyers
+// Get all buyers (non-deleted only)
 exports.getAllBuyers = async (req, res) => {
   try {
-    const buyers = await Buyer.find();
+    const buyers = await Buyer.find({ deleted: false });
     res.status(200).json(buyers);
   } catch (error) {
     logger.info(error);
@@ -26,7 +26,7 @@ exports.getAllBuyers = async (req, res) => {
   }
 };
 
-// Get a single buyer by ID
+// Get a single buyer by ID (including deleted)
 exports.getBuyerById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -53,12 +53,13 @@ exports.getBuyerById = async (req, res) => {
   }
 };
 
-// Function to get buyers by full name (partial or complete match)
+// Function to get buyers by full name (partial or complete match, non-deleted only)
 exports.getBuyersByName = async (req, res) => {
   try {
     const nameQuery = req.body.client_name;
     const buyers = await Buyer.find({
       full_name: new RegExp(nameQuery, "i"),
+      deleted: false,
       $or: [
         { deactivated: false },
         { deactivated: { $exists: false } }
@@ -92,21 +93,25 @@ exports.updateBuyerById = async (req, res) => {
   }
 };
 
-// Delete a buyer by ID
+// Soft delete a buyer by ID (set deleted to true)
 exports.deleteBuyerById = async (req, res) => {
   try {
-    const buyer = await Buyer.findOneAndDelete({ phone_num: req.params.id });
+    const buyer = await Buyer.findOneAndUpdate(
+      { phone_num: req.params.id, deleted: false },
+      { deleted: true },
+      { new: true }
+    );
     if (!buyer) {
-      return res.status(404).json({ message: "❌ Buyer not found" });
+      return res.status(404).json({ message: "❌ Buyer not found or already deleted" });
     }
-    res.status(200).json({ message: "✅ Buyer deleted successfully" });
+    res.status(200).json({ message: "✅ Buyer soft deleted successfully" });
   } catch (error) {
     logger.info(error);
     res.status(400).json({ message: error.message });
   }
 };
 
-// Function to find closest location
+// Function to find closest location (non-deleted only)
 exports.findClosestLocation = async (req, res) => {
   try {
     const { lat, lng } = req.body;
@@ -129,6 +134,7 @@ exports.findClosestLocation = async (req, res) => {
           $maxDistance: 10000000, // Adjust max distance as needed (in meters)
         },
       },
+      deleted: false, // Only consider non-deleted buyers
     }).limit(5); // Limiting to 5 closest locations
 
     if (closestBuyers.length === 0) {
