@@ -15,6 +15,7 @@ exports.findRecordByPhone = async (phoneNumber) => {
     // Search in Courier collection
     const courierRecord = await Courier.findOne({
       phone_num: new RegExp(standardizedPhoneNumber + "$"),
+      deleted: false
     });
     if (courierRecord) {
       return { ...courierRecord.toObject(), userType: "courier" };
