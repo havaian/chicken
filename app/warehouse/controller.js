@@ -8,7 +8,7 @@ exports.createWarehouse = async (req, res) => {
     await warehouse.save();
     res.status(201).json(warehouse);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -19,7 +19,7 @@ exports.getAllWarehouses = async (req, res) => {
     const warehouses = await Warehouse.find();
     res.status(200).json(warehouses);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -40,7 +40,7 @@ exports.getWarehouseById = async (req, res) => {
     }
     res.status(200).json(warehouse);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -65,7 +65,7 @@ exports.updateWarehouseById = async (req, res) => {
     }
     res.status(200).json(warehouse);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -81,7 +81,7 @@ exports.deleteWarehouseById = async (req, res) => {
     }
     res.status(200).json({ message: "✅ Warehouse deleted successfully" });
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };

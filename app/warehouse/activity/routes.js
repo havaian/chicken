@@ -20,4 +20,7 @@ router.put("/:id?", activityController.updateActivityById);
 // Delete an activity by ID or today's activity if no ID is provided
 router.delete("/:id?", activityController.deleteActivityById);
 
+// New route to get activity by date
+router.get("/by-date/:date", activityController.getActivityByDate);
+
 module.exports = router;

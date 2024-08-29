@@ -52,7 +52,7 @@ exports.createDailyActivity = async (req, res) => {
     await activity.save();
     res.status(201).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -63,7 +63,7 @@ exports.getAllActivities = async (req, res) => {
     const activities = await DailyActivity.find();
     res.status(200).json(activities);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -79,7 +79,7 @@ exports.getLast30DaysActivities = async (req, res) => {
     });
     res.status(200).json(activities);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -95,12 +95,12 @@ exports.getTodaysActivity = async (req, res) => {
     // Check if courierId is a valid ObjectId
     let courierExists;
     if (ObjectId.isValid(courierId)) {
-      courierExists = await Courier.findById(courierId);
+      courierExists = await Courier.findOne({ _id: courierId, deleted: false });
     }
 
     // If not found by ObjectId, try to find by phone_num
     if (!courierExists) {
-      courierExists = await Courier.findOne({ phone_num: courierId });
+      courierExists = await Courier.findOne({ phone_num: courierId, deleted: false });
     }
 
     if (!courierExists) {
@@ -122,7 +122,7 @@ exports.getTodaysActivity = async (req, res) => {
 
     res.status(200).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -139,6 +139,32 @@ const createTodaysActivity = async (courierId) => {
 
   await todayActivity.save();
   return todayActivity;
+};
+
+// New function to get today's accepted and unfinished activities
+exports.getTodaysAcceptedUnfinishedActivities = async (req, res) => {
+  try {
+    const dayStart = getCurrentDayStart();
+    const dayEnd = moment(dayStart).add(1, 'day');
+
+    const activities = await DailyActivity.find({
+      date: {
+        $gte: dayStart.toDate(),
+        $lt: dayEnd.toDate()
+      },
+      accepted_today: true,
+      day_finished: false
+    }).populate('courier', 'name phone_num'); // Populate courier details if needed
+
+    if (activities.length === 0) {
+      return res.status(404).json({ message: "❌ No accepted and unfinished activities found for today." });
+    }
+
+    res.status(200).json(activities);
+  } catch (error) {
+    logger.error(error);
+    res.status(400).json({ message: error.message });
+  }
 };
 
 // Update an activity by ID or today's activity if no ID is provided
@@ -173,7 +199,7 @@ exports.updateActivityById = async (req, res) => {
     }
     res.status(200).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -205,7 +231,40 @@ exports.deleteActivityById = async (req, res) => {
     }
     res.status(200).json({ message: "✅ Activity deleted successfully" });
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// New function to get activities of all couriers for a given date
+exports.getActivitiesByDate = async (req, res) => {
+  try {
+    const { date } = req.params; // Expecting date in format YYYY-MM-DD
+    
+    // Parse the input date
+    const inputDate = moment.tz(date, 'YYYY-MM-DD', 'Asia/Tashkent');
+    
+    // Set the start time to 6 a.m. of the input date
+    const startTime = inputDate.clone().startOf('day').add(6, 'hours');
+    
+    // Set the end time to 6 a.m. of the next day
+    const endTime = startTime.clone().add(1, 'day');
+
+    // Find all activities within the time range
+    const activities = await DailyActivity.find({
+      date: {
+        $gte: startTime.toDate(),
+        $lt: endTime.toDate()
+      }
+    }).populate('courier', 'name phone_num'); // Populate courier details if needed
+
+    if (activities.length === 0) {
+      return res.status(404).json({ message: "❌ No activities found for the given date." });
+    }
+
+    res.status(200).json(activities);
+  } catch (error) {
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };

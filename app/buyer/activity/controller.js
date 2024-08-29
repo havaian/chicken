@@ -51,7 +51,7 @@ exports.createDailyActivity = async (req, res) => {
     await activity.save();
     res.status(201).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -66,7 +66,7 @@ exports.getAllActivities = async (req, res) => {
     const activities = await DailyBuyerActivity.find(options);
     res.status(200).json(activities);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -86,7 +86,7 @@ exports.getLast30DaysActivities = async (req, res) => {
     const activities = await DailyBuyerActivity.find(options);
     res.status(200).json(activities);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -141,7 +141,7 @@ exports.getAllTodaysActivities = async (req, res) => {
 
     res.status(200).json(allActivities);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(500).json({ message: "❌ Error retrieving activities for all buyers", error: error.message });
   }
 };
@@ -157,12 +157,12 @@ exports.getTodaysActivity = async (req, res) => {
 
     // Check if buyerId is a valid ObjectId
     if (ObjectId.isValid(buyerId)) {
-      buyerExists = await Buyer.findById(buyerId);
+      buyerExists = await Buyer.findOne({ _id: buyerId, deleted: false });
     }
 
     // If not found by ObjectId, try to find by phone_number
     if (!buyerExists) {
-      buyerExists = await Buyer.findOne({ phone_num: buyerId });
+      buyerExists = await Buyer.findOne({ phone_num: buyerId, deleted: false });
     }
 
     if (!buyerExists) {
@@ -183,7 +183,7 @@ exports.getTodaysActivity = async (req, res) => {
 
     res.status(200).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -235,7 +235,7 @@ exports.updateActivityById = async (req, res) => {
     }
     res.status(200).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -266,7 +266,7 @@ exports.deleteActivityById = async (req, res) => {
     }
     res.status(200).json({ message: "✅ Activity deleted successfully" });
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };

@@ -8,7 +8,7 @@ exports.createCourier = async (req, res) => {
     await courier.save();
     res.status(201).json(courier);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -19,7 +19,7 @@ exports.getAllCouriers = async (req, res) => {
     const couriers = await Courier.find({ deleted: false });
     res.status(200).json(couriers);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -40,7 +40,7 @@ exports.getCourierById = async (req, res) => {
     }
     res.status(200).json(courier);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -64,7 +64,7 @@ exports.updateCourierById = async (req, res) => {
     }
     res.status(200).json(courier);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -82,7 +82,7 @@ exports.deleteCourierById = async (req, res) => {
     }
     res.status(200).json({ message: "✅ Courier soft deleted successfully" });
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -100,7 +100,7 @@ exports.getCouriersByName = async (req, res) => {
     }
     res.status(200).json(couriers);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };

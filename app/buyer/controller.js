@@ -10,7 +10,7 @@ exports.createBuyer = async (req, res) => {
     await buyer.save();
     res.status(201).json(buyer);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -21,7 +21,7 @@ exports.getAllBuyers = async (req, res) => {
     const buyers = await Buyer.find({ deleted: false });
     res.status(200).json(buyers);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -48,7 +48,7 @@ exports.getBuyerById = async (req, res) => {
 
     res.status(200).json(buyer);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -70,7 +70,7 @@ exports.getBuyersByName = async (req, res) => {
     }
     res.status(200).json(buyers);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -88,7 +88,7 @@ exports.updateBuyerById = async (req, res) => {
     }
     res.status(200).json(buyer);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -106,7 +106,7 @@ exports.deleteBuyerById = async (req, res) => {
     }
     res.status(200).json({ message: "✅ Buyer soft deleted successfully" });
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -152,7 +152,7 @@ exports.findClosestLocation = async (req, res) => {
 
     res.status(200).json(closestLocations);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(500).json({ message: "❌ Internal server error" });
   }
 };

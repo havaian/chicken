@@ -8,7 +8,7 @@ exports.createImporter = async (req, res) => {
     await importer.save();
     res.status(201).json(importer);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -19,7 +19,7 @@ exports.getAllImporters = async (req, res) => {
     const importers = await Importer.find();
     res.status(200).json(importers);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -39,7 +39,7 @@ exports.getImporterById = async (req, res) => {
     }
     res.status(200).json(importer);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -56,7 +56,7 @@ exports.getImportersByName = async (req, res) => {
     }
     res.status(200).json(importers);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -74,7 +74,7 @@ exports.updateImporterById = async (req, res) => {
     }
     res.status(200).json(importer);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -90,7 +90,7 @@ exports.deleteImporterById = async (req, res) => {
     }
     res.status(200).json({ message: "✅ Importer deleted successfully" });
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };

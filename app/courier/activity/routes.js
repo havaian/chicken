@@ -11,6 +11,9 @@ router.get("/all", activityController.getAllActivities);
 // Get activities for the last 30 days
 router.get("/last30days", activityController.getLast30DaysActivities);
 
+// New route to get today's accepted and unfinished activities
+router.get("/today/accepted-unfinished", activityController.getTodaysAcceptedUnfinishedActivities);
+
 // Get today's activity
 router.get("/today/:courierId", activityController.getTodaysActivity);
 
@@ -19,5 +22,8 @@ router.put("/:id", activityController.updateActivityById);
 
 // Delete an activity by ID
 router.delete("/:id", activityController.deleteActivityById);
+
+// New route to get activities by date
+router.get("/by-date/:date", activityController.getActivitiesByDate);
 
 module.exports = router;

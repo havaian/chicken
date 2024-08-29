@@ -31,7 +31,7 @@ exports.createDailyActivity = async (req, res) => {
     await todayActivity.save();
     res.status(201).json(todayActivity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -42,7 +42,7 @@ exports.getAllActivities = async (req, res) => {
     const activities = await DailyActivity.find();
     res.status(200).json(activities);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -57,7 +57,7 @@ exports.getLast30DaysActivities = async (req, res) => {
     });
     res.status(200).json(activities);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -81,7 +81,7 @@ exports.getTodaysActivity = async (req, res) => {
 
     res.status(200).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -130,7 +130,7 @@ exports.updateActivityById = async (req, res) => {
     }
     res.status(200).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -160,7 +160,39 @@ exports.deleteActivityById = async (req, res) => {
     }
     res.status(200).json({ message: "✅ Activity deleted successfully" });
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+// Get activity by date
+exports.getActivityByDate = async (req, res) => {
+  try {
+    const { date } = req.params; // Expecting date in format YYYY-MM-DD
+    
+    // Parse the input date
+    const inputDate = moment.tz(date, 'YYYY-MM-DD', 'Asia/Tashkent');
+    
+    // Set the start time to 6 a.m. of the input date
+    const startTime = inputDate.clone().startOf('day').add(6, 'hours');
+    
+    // Set the end time to 6 a.m. of the next day
+    const endTime = startTime.clone().add(1, 'day');
+
+    // Find the activity within the time range
+    const activity = await DailyActivity.findOne({
+      date: {
+        $gte: startTime.toDate(),
+        $lt: endTime.toDate()
+      }
+    });
+
+    if (!activity) {
+      return res.status(404).json({ message: "No activity found for the given date." });
+    }
+
+    res.status(200).json(activity);
+  } catch (error) {
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };

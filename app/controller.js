@@ -31,7 +31,7 @@ exports.findRecordByPhone = async (phoneNumber) => {
 
     return null; // Return null if not found in both collections
   } catch (error) {
-    logger.info("Error finding record:", error);
+    logger.error("Error finding record:", error);
     return null;
   }
 };

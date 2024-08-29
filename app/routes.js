@@ -16,7 +16,7 @@ router.get("/find-by-phone/:phoneNumber", async (req, res) => {
 
     res.status(200).json(record);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(500).json({ message: "❌ Internal server error" });
   }
 });

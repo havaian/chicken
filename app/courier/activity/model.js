@@ -42,9 +42,9 @@ const dailyActivitySchema = new mongoose.Schema(
       default: 0,
     },
     accepted: {
-      type: Object,
+      type: Array,
       required: true,
-      default: {},
+      default: [],
     },
     accepted_today: {
       type: Boolean,

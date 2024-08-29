@@ -52,7 +52,7 @@ exports.createDailyActivity = async (req, res) => {
     await activity.save();
     res.status(201).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -67,7 +67,7 @@ exports.getAllActivities = async (req, res) => {
     const activities = await DailyImporterActivity.find(options);
     res.status(200).json(activities);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -87,7 +87,7 @@ exports.getLast30DaysActivities = async (req, res) => {
     const activities = await DailyImporterActivity.find(options);
     res.status(200).json(activities);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -132,7 +132,7 @@ exports.getTodaysActivity = async (req, res) => {
 
     res.status(200).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -184,7 +184,7 @@ exports.updateActivityById = async (req, res) => {
     }
     res.status(200).json(activity);
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
@@ -215,7 +215,7 @@ exports.deleteActivityById = async (req, res) => {
     }
     res.status(200).json({ message: "✅ Activity deleted successfully" });
   } catch (error) {
-    logger.info(error);
+    logger.error(error);
     res.status(400).json({ message: error.message });
   }
 };
