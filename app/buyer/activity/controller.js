@@ -40,7 +40,8 @@ const getTodaySixAMUTCPlusFive = () => {
 
 // Function to get the start of the current "day" (6 a.m. today or 6 a.m. yesterday if it's before 6 a.m.)
 const getCurrentDayStart = () => {
-  const now = moment.tz('Asia/Tashkent');
+  const timeZone = 'Asia/Tashkent'; // UTC+5
+  const now = moment.tz(timeZone);
   const todaySixAM = getTodaySixAMUTCPlusFive();
   return now.isBefore(todaySixAM) ? todaySixAM.subtract(1, 'day') : todaySixAM;
 };
@@ -175,6 +176,39 @@ exports.getAllTodaysActivities = async (req, res) => {
   } catch (error) {
     logger.error(error);
     res.status(500).json({ message: "❌ Error retrieving activities for all buyers", error: error.message });
+  }
+};
+
+exports.updateAllTodaysActivitiesPrices = async (req, res) => {
+  try {
+    const { price } = req.body;
+
+    if (!price || typeof price !== 'object') {
+      return res.status(400).json({ message: "❌ Invalid price data in request body" });
+    }
+
+    const dayStart = getCurrentDayStart();
+    const dayEnd = moment(dayStart).add(1, 'day');
+
+    const result = await DailyBuyerActivity.updateMany(
+      {
+        date: {
+          $gte: dayStart.toDate(),
+          $lt: dayEnd.toDate()
+        }
+      },
+      { $set: { price: price } }
+    );
+
+    logger.info(`Updated ${result.modifiedCount} activities with new price data`);
+
+    res.status(200).json({
+      message: `✅ Successfully updated ${result.modifiedCount} activities with new price data`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    logger.error('Error updating today\'s activities prices:', error);
+    res.status(500).json({ message: "❌ Error updating activities", error: error.message });
   }
 };
 
