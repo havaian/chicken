@@ -5,6 +5,33 @@ const ObjectId = mongoose.Types.ObjectId;
 const { logger, readLog } = require("../../utils/logging");
 const moment = require('moment-timezone');
 
+const fs = require('fs');
+const path = require('path');
+
+const getPrices = () => {
+  try {
+    const pricesPath = path.join(__dirname, '../../data/prices.js');
+    const data = fs.readFileSync(pricesPath, 'utf8');
+    
+    // Use regex to extract the object from the file content
+    const match = data.match(/module\.exports\s*=\s*({[\s\S]*});/);
+    if (match && match[1]) {
+      // Use eval to parse the object (be cautious with this approach)
+      const prices = eval('(' + match[1] + ')');
+      
+      if (typeof prices === 'object' && Object.keys(prices).length > 0) {
+        return prices;
+      }
+    }
+    
+    logger.info('Failed to extract valid prices from file');
+    return null;
+  } catch (error) {
+    logger.info('Error reading prices file:', error);
+    return null;
+  }
+};
+
 // Function to get today's 6 a.m. in UTC+5
 const getTodaySixAMUTCPlusFive = () => {
   const timeZone = 'Asia/Tashkent'; // UTC+5
@@ -102,6 +129,8 @@ exports.getAllTodaysActivities = async (req, res) => {
     // Array to store all activities
     let allActivities = [];
 
+    const prices = getPrices();
+
     // Process each buyer
     for (const buyer of allBuyers) {
       // Try to find today's activity for the buyer
@@ -118,13 +147,16 @@ exports.getAllTodaysActivities = async (req, res) => {
         activity = await DailyBuyerActivity.findOne({
           buyer: buyer._id
         }).sort({ date: -1 }).select('_id price debt buyer');
+        if (activity) {
+          activity.price = prices;
+        }
       }
 
       // If still no activity found, create a new one with default values
       if (!activity) {
         activity = {
           _id: null,
-          price: {}, // You might want to set default prices here
+          price: prices,
           buyer: buyer._id,
           debt: 0
         };
