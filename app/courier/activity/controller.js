@@ -127,6 +127,26 @@ exports.getTodaysActivity = async (req, res) => {
   }
 };
 
+// Get today's activity
+exports.getAllTodaysActivities = async (req, res) => {
+  try {    
+    const dayStart = getCurrentDayStart();
+    const dayEnd = moment(dayStart).add(1, 'day');
+
+    let activities = await DailyActivity.find({
+      date: {
+        $gte: dayStart.toDate(),
+        $lt: dayEnd.toDate()
+      },
+    }).populate("courier", "full_name");
+
+    res.status(200).json(activities);
+  } catch (error) {
+    logger.error(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
 const createTodaysActivity = async (courierId) => {
   const lastActivity = await DailyActivity.findOne({ courier: courierId }).sort({ date: -1 });
 
@@ -154,13 +174,53 @@ exports.getTodaysAcceptedUnfinishedActivities = async (req, res) => {
       },
       accepted_today: true,
       day_finished: false
-    }).populate('courier', 'name phone_num'); // Populate courier details if needed
+    }).populate('courier', 'full_name phone_num');
 
     if (activities.length === 0) {
-      return res.status(404).json({ message: "❌ No accepted and unfinished activities found for today." });
+      return res.status(404).json({ message: "❌ No accepted and unfinished activities found for today."});
     }
 
     res.status(200).json(activities);
+  } catch (error) {
+    logger.error(error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Function to get all couriers for today who don't have accepted_today set to true
+exports.getUnacceptedCouriersForToday = async (req, res) => {
+  try {
+    const dayStart = getTodaySixAMUTCPlusFive();
+    const dayEnd = moment(dayStart).add(1, 'day');
+
+    // Find all active couriers
+    const allCouriers = await Courier.find({ deleted: false });
+
+    // Array to store unaccepted couriers
+    const unacceptedCouriers = [];
+
+    // Check each courier's activity for today
+    for (const courier of allCouriers) {
+      const todayActivity = await DailyActivity.findOne({
+        courier: courier._id,
+        date: {
+          $gte: dayStart.toDate(),
+          $lt: dayEnd.toDate()
+        },
+        day_finished: false
+      });
+
+      // If no activity found or accepted_today is not true, add to unaccepted list
+      if (!todayActivity || !todayActivity.accepted_today) {
+        unacceptedCouriers.push(courier);
+      }
+    }
+
+    if (unacceptedCouriers.length === 0) {
+      return res.status(404).json({ message: "❌ All couriers have accepted_today set to true for today." });
+    }
+
+    res.status(200).json(unacceptedCouriers);
   } catch (error) {
     logger.error(error);
     res.status(400).json({ message: error.message });
@@ -256,7 +316,7 @@ exports.getActivitiesByDate = async (req, res) => {
         $gte: startTime.toDate(),
         $lt: endTime.toDate()
       }
-    }).populate('courier', 'name phone_num'); // Populate courier details if needed
+    }).populate('courier', 'full_name phone_num'); // Populate courier details if needed
 
     if (activities.length === 0) {
       return res.status(404).json({ message: "❌ No activities found for the given date." });

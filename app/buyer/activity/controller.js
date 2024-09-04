@@ -141,16 +141,17 @@ exports.getAllTodaysActivities = async (req, res) => {
           $gte: dayStart.toDate(),
           $lt: dayEnd.toDate()
         }
-      }).select('_id price debt buyer');
+      }).select('_id price debt buyer date');
 
       // If no activity found for today, get the most recent activity
       if (!activity) {
         activity = await DailyBuyerActivity.findOne({
           buyer: buyer._id
-        }).sort({ date: -1 }).select('_id price debt buyer');
-        if (activity) {
-          activity.price = prices;
-        }
+        }).sort({ date: -1 }).select('_id price debt buyer date');
+      } else {
+        console.log(activity);
+        activity = activity.toObject(); // Convert to a plain JavaScript object
+        activity.isToday = true;
       }
 
       // If still no activity found, create a new one with default values
@@ -159,17 +160,13 @@ exports.getAllTodaysActivities = async (req, res) => {
           _id: null,
           price: prices,
           buyer: buyer._id,
-          debt: 0
+          debt: 0,
+          date: dayStart.toDate()
         };
       }
 
       // Add the activity to the array
-      allActivities.push({
-        _id: activity._id,
-        price: activity.price,
-        buyer: activity.buyer,
-        debt: activity.debt
-      });
+      allActivities.push(activity);
     }
 
     res.status(200).json(allActivities);

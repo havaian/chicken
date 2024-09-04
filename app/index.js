@@ -52,9 +52,12 @@ app.use((req, res, next) => {
   };
 
   res.on('finish', () => {
-    logger.info(`Request Headers: ${JSON.stringify(req.headers)}`);
-    logger.info(`Request Body: ${JSON.stringify(req.body)}`);
-    logger.info(`Response Data: ${res.locals.body}`);
+    if (!req.url.includes('all')) {
+      logger.info(`Request URL: ${req.url}`);
+      logger.info(`Request Headers: ${JSON.stringify(req.headers)}`);
+      logger.info(`Request Body: ${JSON.stringify(req.body)}`);
+      logger.info(`Response Data: ${res.locals.body}`);
+    }
   });
 
   next();

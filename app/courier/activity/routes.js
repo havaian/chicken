@@ -14,6 +14,12 @@ router.get("/last30days", activityController.getLast30DaysActivities);
 // New route to get today's accepted and unfinished activities
 router.get("/today/accepted-unfinished", activityController.getTodaysAcceptedUnfinishedActivities);
 
+// New route to get today's accepted and unfinished activities
+router.get("/today/unaccepted", activityController.getUnacceptedCouriersForToday);
+
+// Get all today's activities
+router.get("/today/all", activityController.getAllTodaysActivities);
+
 // Get today's activity
 router.get("/today/:courierId", activityController.getTodaysActivity);
 
