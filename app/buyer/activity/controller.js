@@ -149,7 +149,6 @@ exports.getAllTodaysActivities = async (req, res) => {
           buyer: buyer._id
         }).sort({ date: -1 }).select('_id price debt buyer date');
       } else {
-        console.log(activity);
         activity = activity.toObject(); // Convert to a plain JavaScript object
         activity.isToday = true;
       }
