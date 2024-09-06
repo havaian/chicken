@@ -32,40 +32,61 @@ const log4jsStream = {
 // Set up `morgan` to use `log4js` stream
 app.use(morgan("dev", { stream: log4jsStream }));
 
+// Import the necessary modules
 const crypto = require('crypto');
-
-// Function to generate a simple hash
-const generateHash = (login, password) => {
-  return crypto.createHash('sha256').update(`${login}:${password}`).digest('hex');
-};
 
 // Middleware to capture and log request and response details
 app.use((req, res, next) => {
-  // Check for the auth header
-  const authHash = req.headers['x-auth-hash'];
-  const expectedHash = generateHash(process.env.API_LOGIN, process.env.API_PASSWORD);
+  // Only apply this middleware if the request is not GET /
+  if (!(req.method === 'GET' && req.path === '/')) {
+    let isAuthenticated = false;
 
-  if (authHash !== expectedHash) {
-    res.status(403).json({ error: "Forbidden: Access denied." });
-    return;
-  }
+    // Function to generate hash
+    const generateHash = (login, password) => {
+      return crypto.createHash('sha256').update(`${login}:${password}`).digest('hex');
+    };
 
-  // Middleware to log request and response details
-  const originalSend = res.send;
+    // Check for the auth header
+    const authHash = req.headers['x-auth-hash'];
+    const expectedHash = generateHash(process.env.API_LOGIN, process.env.API_PASSWORD);
 
-  res.send = function (data) {
-    res.locals.body = data;
-    originalSend.call(this, data);
-  };
+    if (authHash === expectedHash) {
+      isAuthenticated = true;
+    } else {
+      // If x-auth-hash is not present or invalid, check for basic auth
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const auth = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+        const user = auth[0];
+        const pass = auth[1];
 
-  res.on('finish', () => {
-    if (!req.url.includes('all')) {
-      logger.info(`Request URL: ${req.url}`);
-      logger.info(`Request Headers: ${JSON.stringify(req.headers)}`);
-      logger.info(`Request Body: ${JSON.stringify(req.body)}`);
-      logger.info(`Response Data: ${res.locals.body}`);
+        if (user === process.env.API_LOGIN && pass === process.env.API_PASSWORD) {
+          isAuthenticated = true;
+        }
+      }
     }
-  });
+
+    if (!isAuthenticated) {
+      res.status(401).json({ error: "Unauthorized: Access denied." });
+      return;
+    }
+
+    // Middleware to log request and response details
+    const originalSend = res.send;
+
+    res.send = function (data) {
+      res.locals.body = data;
+      originalSend.call(this, data);
+    };
+
+    res.on('finish', () => {
+      if (!req.url.includes('all')) {
+        logger.info(`Request Headers: ${JSON.stringify(req.headers)}`);
+        logger.info(`Request Body: ${JSON.stringify(req.body)}`);
+        logger.info(`Response Data: ${res.locals.body}`);
+      }
+    });
+  }
 
   next();
 });
