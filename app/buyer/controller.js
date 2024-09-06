@@ -105,7 +105,7 @@ exports.updateBuyerById = async (req, res) => {
 exports.deleteBuyerById = async (req, res) => {
   try {
     const buyer = await Buyer.findOneAndUpdate(
-      { phone_num: req.params.id, deleted: false },
+      { _id: req.params.id, deleted: false },
       { deleted: true },
       { new: true }
     );
