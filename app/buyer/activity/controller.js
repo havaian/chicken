@@ -123,52 +123,115 @@ exports.getAllTodaysActivities = async (req, res) => {
   try {
     const dayStart = getCurrentDayStart();
     const dayEnd = moment(dayStart).add(1, 'day');
-
-    // Get all unique buyers
-    const allBuyers = await Buyer.find({}, '_id');
-
-    // Array to store all activities
-    let allActivities = [];
-
     const prices = getPrices();
 
-    // Process each buyer
-    for (const buyer of allBuyers) {
-      // Try to find today's activity for the buyer
-      let activity = await DailyBuyerActivity.findOne({
-        buyer: buyer._id,
-        date: {
-          $gte: dayStart.toDate(),
-          $lt: dayEnd.toDate()
+    // Aggregate pipeline to get today's activities or most recent activity for each buyer
+    const allActivities = await DailyBuyerActivity.aggregate([
+      {
+        $facet: {
+          todayActivities: [
+            {
+              $match: {
+                date: { $gte: dayStart.toDate(), $lt: dayEnd.toDate() }
+              }
+            },
+            {
+              $addFields: {
+                isToday: { $literal: true }
+              }
+            }
+          ],
+          recentActivities: [
+            {
+              $sort: { date: -1 }
+            },
+            {
+              $group: {
+                _id: "$buyer",
+                activity: { $first: "$$ROOT" }
+              }
+            },
+            {
+              $replaceRoot: { newRoot: "$activity" }
+            }
+          ]
         }
-      }).select('_id price debt buyer date');
-
-      // If no activity found for today, get the most recent activity
-      if (!activity) {
-        activity = await DailyBuyerActivity.findOne({
-          buyer: buyer._id
-        }).sort({ date: -1 }).select('_id price debt buyer date');
-      } else {
-        activity = activity.toObject(); // Convert to a plain JavaScript object
-        activity.isToday = true;
+      },
+      {
+        $project: {
+          allActivities: {
+            $setUnion: ["$todayActivities", "$recentActivities"]
+          }
+        }
+      },
+      { $unwind: "$allActivities" },
+      { $replaceRoot: { newRoot: "$allActivities" } },
+      {
+        $lookup: {
+          from: "buyers",
+          localField: "buyer",
+          foreignField: "_id",
+          as: "buyerInfo"
+        }
+      },
+      { $unwind: "$buyerInfo" },
+      {
+        $project: {
+          _id: "$buyerInfo._id",
+          price: 1,
+          debt: 1,
+          date: 1,
+          isToday: { $ifNull: ["$isToday", false] },
+          full_name: "$buyerInfo.full_name",
+          phone_num: "$buyerInfo.phone_num",
+          debt_limit: "$buyerInfo.debt_limit",
+          deactivated: "$buyerInfo.deactivated",
+          categories: "$buyerInfo.categories"
+        }
+      },
+      {
+        $group: {
+          _id: "$_id",
+          activity: { $first: "$$ROOT" }
+        }
+      },
+      {
+        $replaceRoot: { newRoot: "$activity" }
       }
+    ]);
 
-      // If still no activity found, create a new one with default values
-      if (!activity) {
-        activity = {
-          _id: null,
+    // Get all buyers and create default activities for those without any activity
+    const allBuyers = await Buyer.find({}, '_id full_name phone_num debt_limit deactivated categories');
+    const buyerMap = new Map(allActivities.map(a => [a._id.toString(), a]));
+
+    const finalActivities = await Promise.all(allBuyers.map(async (buyer) => {
+      const buyerId = buyer._id.toString();
+      const existingActivity = buyerMap.get(buyerId);
+      
+      if (existingActivity) {
+        return existingActivity;
+      } else {
+        // If no activity exists, find the most recent activity for this buyer
+        const mostRecentActivity = await DailyBuyerActivity.findOne({ buyer: buyer._id })
+          .sort({ date: -1 })
+          .select('debt');
+
+        return {
+          _id: mostRecentActivity.buyer,
           price: prices,
-          buyer: buyer._id,
-          debt: 0,
-          date: dayStart.toDate()
+          debt: mostRecentActivity ? mostRecentActivity.debt : 0,
+          date: dayStart.toDate(),
+          isToday: false,
+          full_name: buyer.full_name,
+          phone_num: buyer.phone_num,
+          debt_limit: buyer.debt_limit,
+          deactivated: buyer.deactivated,
+          categories: buyer.categories
         };
       }
+    }));
 
-      // Add the activity to the array
-      allActivities.push(activity);
-    }
-
-    res.status(200).json(allActivities);
+    res.status(200).json(finalActivities);
   } catch (error) {
     logger.error(error);
     res.status(500).json({ message: "❌ Error retrieving activities for all buyers", error: error.message });

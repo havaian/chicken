@@ -78,11 +78,19 @@ exports.getBuyersByName = async (req, res) => {
 // Update a buyer by ID
 exports.updateBuyerById = async (req, res) => {
   try {
+    let query;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      query = { _id: req.params.id };
+    } else {
+      query = { phone_num: req.params.id };
+    }
+
     const buyer = await Buyer.findOneAndUpdate(
-      { $or: [{ phone_num: req.params.id }, { _id: req.params.id }] },
+      query,
       req.body,
       { new: true, runValidators: true }
     );
+
     if (!buyer) {
       return res.status(404).json({ message: "❌ Buyer not found" });
     }
