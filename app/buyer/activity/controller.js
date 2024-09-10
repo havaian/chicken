@@ -256,11 +256,13 @@ const createTodaysActivity = async (buyerId) => {
     buyer: buyerId,
   }).sort({ date: -1 });
 
+  const prices = getPrices();
+
   const todayActivity = new DailyBuyerActivity({
     buyer: buyerId,
     date: getCurrentDayStart().toDate(),
     debt: lastActivity ? lastActivity.debt : 0,
-    price: lastActivity ? lastActivity.price : {}
+    price: prices
   });
 
   await todayActivity.save();
