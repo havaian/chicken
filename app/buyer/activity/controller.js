@@ -123,53 +123,116 @@ exports.getAllTodaysActivities = async (req, res) => {
   try {
     const dayStart = getCurrentDayStart();
     const dayEnd = moment(dayStart).add(1, 'day');
+    const defaultPrices = getPrices();
 
-    // Get all unique buyers
-    const allBuyers = await Buyer.find({}, '_id');
-
-    // Array to store all activities
-    let allActivities = [];
-
-    const prices = getPrices();
-
-    // Process each buyer
-    for (const buyer of allBuyers) {
-      // Try to find today's activity for the buyer
-      let activity = await DailyBuyerActivity.findOne({
-        buyer: buyer._id,
-        date: {
-          $gte: dayStart.toDate(),
-          $lt: dayEnd.toDate()
+    const activities = await Buyer.aggregate([
+      { $match: { deleted: false } },
+      {
+        $addFields: {
+          defaultPrices: defaultPrices  // Add default prices to each document
         }
-      }).select('_id price debt buyer date');
-
-      // If no activity found for today, get the most recent activity
-      if (!activity) {
-        activity = await DailyBuyerActivity.findOne({
-          buyer: buyer._id
-        }).sort({ date: -1 }).select('_id price debt buyer date');
-      } else {
-        console.log(activity);
-        activity = activity.toObject(); // Convert to a plain JavaScript object
-        activity.isToday = true;
+      },
+      {
+        $lookup: {
+          from: 'dailyactivitybuyers',
+          let: { buyerId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: [{ $toObjectId: '$buyer' }, '$$buyerId'] }
+              }
+            },
+            { $sort: { date: -1 } },
+            { $limit: 1 }
+          ],
+          as: 'lastActivity'
+        }
+      },
+      {
+        $addFields: {
+          activity: {
+            $cond: {
+              if: { $size: '$lastActivity' },
+              then: {
+                $let: {
+                  vars: {
+                    lastAct: { $arrayElemAt: ['$lastActivity', 0] }
+                  },
+                  in: {
+                    $mergeObjects: [
+                      '$$lastAct',
+                      {
+                        isToday: {
+                          $and: [
+                            { $gte: ['$$lastAct.date', dayStart.toDate()] },
+                            { $lt: ['$$lastAct.date', dayEnd.toDate()] }
+                          ]
+                        },
+                        price: {
+                          $cond: {
+                            if: {
+                              $and: [
+                                { $gte: ['$$lastAct.date', dayStart.toDate()] },
+                                { $lt: ['$$lastAct.date', dayEnd.toDate()] }
+                              ]
+                            },
+                            then: '$$lastAct.price',
+                            else: '$defaultPrices'
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              else: {
+                _id: null,
+                price: '$defaultPrices',
+                buyer: '$_id',
+                debt: 0,
+                date: dayStart.toDate(),
+                isToday: true
+              }
+            }
+          }
+        }
+      },
+      {
+        $addFields: {
+          activity: {
+            $mergeObjects: [
+              '$activity',
+              { debt: { $toDouble: '$activity.debt' } }
+            ]
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          full_name: 1,
+          phone_num: 1,
+          locations: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          __v: 1,
+          deactivated: 1,
+          debt_limit: 1,
+          deleted: 1,
+          categories: 1,
+          activity: {
+            _id: 1,
+            buyer: 1,
+            date: 1,
+            debt: 1,
+            price: 1,
+            isToday: 1
+          }
+        }
       }
+    ]);
 
-      // If still no activity found, create a new one with default values
-      if (!activity) {
-        activity = {
-          _id: null,
-          price: prices,
-          buyer: buyer._id,
-          debt: 0,
-          date: dayStart.toDate()
-        };
-      }
-
-      // Add the activity to the array
-      allActivities.push(activity);
-    }
-
-    res.status(200).json(allActivities);
+    res.status(200).json(activities);
   } catch (error) {
     logger.error(error);
     res.status(500).json({ message: "❌ Error retrieving activities for all buyers", error: error.message });
@@ -280,17 +343,11 @@ exports.updateActivityById = async (req, res) => {
         return res.status(404).json({ message: "❌ Activity not found" });
       }
     } else {
-      const dayStart = getCurrentDayStart();
-      const dayEnd = moment(dayStart).add(1, 'day');
+      req.params.buyerId = req.body.buyer;
+
+      const todaysActivity = this.getTodaysActivity();
       
-      activity = await DailyBuyerActivity.findOneAndUpdate(
-        { 
-          buyer: req.body.buyer,
-          date: {
-            $gte: dayStart.toDate(),
-            $lt: dayEnd.toDate()
-          }
-        }, 
+      activity = await DailyBuyerActivity.findByIdAndUpdate(todaysActivity._id, 
         req.body, 
         { new: true, runValidators: true, upsert: true }
       );
