@@ -20,6 +20,9 @@ router.put('/update-todays-prices', activityController.updateAllTodaysActivities
 // Get today's activity
 router.get("/today/:buyerId?", activityController.getTodaysActivity);
 
+// New route to get the latest activity for a buyer
+router.get("/latest/:buyerId", activityController.getLatestActivity);
+
 // Update an activity by ID
 router.put("/:id", activityController.updateActivityById);
 

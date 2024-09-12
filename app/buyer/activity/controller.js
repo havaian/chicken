@@ -332,6 +332,52 @@ const createTodaysActivity = async (buyerId) => {
   return todayActivity;
 };
 
+exports.getLatestActivity = async (req, res) => {
+  try {
+    const { buyerId } = req.params;
+
+    let buyer;
+
+    // Check if buyerId is a valid ObjectId
+    if (ObjectId.isValid(buyerId)) {
+      buyer = await Buyer.findOne({ _id: buyerId, deleted: false });
+    }
+
+    // If not found by ObjectId, try to find by phone_number
+    if (!buyer) {
+      buyer = await Buyer.findOne({ phone_num: buyerId, deleted: false });
+    }
+
+    if (!buyer) {
+      return res.status(404).json({ message: "❌ Buyer not found." });
+    }
+
+    const dayStart = getCurrentDayStart();
+    const dayEnd = moment(dayStart).add(1, 'day');
+
+    const latestActivity = await DailyBuyerActivity.findOne({
+      buyer: buyer._id,
+      date: {
+        $gte: dayStart.toDate(),
+        $lt: dayEnd.toDate()
+      }
+    }).lean();
+
+    if (!latestActivity) {
+      // If no activity found for today, return null
+      return res.status(200).json(null);
+    }
+
+    // Add isToday flag (always true in this case)
+    latestActivity.isToday = true;
+
+    res.status(200).json(latestActivity);
+  } catch (error) {
+    logger.error('Error retrieving latest activity:', error);
+    res.status(500).json({ message: "❌ Error retrieving latest activity", error: error.message });
+  }
+};
+
 // Update an activity by ID or today's activity if no ID is provided
 exports.updateActivityById = async (req, res) => {
   try {
