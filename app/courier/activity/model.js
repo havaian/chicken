@@ -11,9 +11,23 @@ const dailyActivitySchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-    delivered_to: {
-      type: Array
-    },
+    delivered_to: [{
+      _id: { type: String, required: true }, // Changed to String to match with buyer's delivery ID
+      buyer: {
+        _id: String,
+        full_name: String,
+        phone_num: String
+      },
+      name: String,
+      eggs: [{
+        category: String,
+        amount: Number,
+        price: Number
+      }],
+      payment: Number,
+      debt: Number,
+      time: String
+    }],
     by_morning: {
       type: Object,
       required: true,

@@ -23,7 +23,7 @@ exports.getAllCouriers = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
+  
 // Get a single courier by phone number or ID (including deleted)
 exports.getCourierById = async (req, res) => {
   try {

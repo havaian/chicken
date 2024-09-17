@@ -4,6 +4,7 @@ const buyerRoutes = require("./buyer/routes");
 const courierRoutes = require("./courier/routes");
 const warehouseRoutes = require("./warehouse/routes");
 const importerRoutes = require("./importer/routes");
+const generalRoutes = require("./general/routes");
 // const adminRoutes = require("./admin/routes");
 const { logger, readLog } = require("./utils/logging");
 
@@ -120,6 +121,7 @@ app.use("/buyer", buyerRoutes);
 app.use("/courier", courierRoutes);
 app.use("/warehouse", warehouseRoutes);
 app.use("/importer", importerRoutes);
+app.use("/general", generalRoutes);
 // app.use("/admin", adminRoutes);
 app.use(require("./routes"));
 

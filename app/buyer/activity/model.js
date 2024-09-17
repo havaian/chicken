@@ -16,11 +16,23 @@ const dailyBuyerActivitySchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
-    accepted:  {
-      type: Array,
-      required: true,
-      default: [],
-    },
+    accepted: [{
+      _id: { type: String, required: true },
+      courier: {
+        _id: String,
+        full_name: String,
+        phone_num: String,
+        car_num: String
+      },
+      eggs: [{
+        category: String,
+        amount: Number,
+        price: Number
+      }],
+      payment: Number,
+      debt: Number,
+      time: String
+    }],
     price: {
       type: Object,
       required: true,

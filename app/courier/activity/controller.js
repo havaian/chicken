@@ -84,13 +84,23 @@ exports.getLast30DaysActivities = async (req, res) => {
   }
 };
 
-// Get today's activity
+// Function to get yesterday's 6 a.m. in UTC+5
+const getYesterdaySixAMUTCPlusFive = () => {
+  const timeZone = 'Asia/Tashkent'; // UTC+5
+  return moment.tz(timeZone).subtract(1, 'day').startOf('day').add(6, 'hours');
+};
+
+// Function to get the end of yesterday's "day" (6 a.m. today)
+const getYesterdayDayEnd = () => {
+  return getTodaySixAMUTCPlusFive();
+};
+
 exports.getTodaysActivity = async (req, res) => {
   try {
     const { courierId } = req.params;
     
-    const dayStart = getCurrentDayStart();
-    const dayEnd = moment(dayStart).add(1, 'day');
+    const yesterdayStart = getYesterdaySixAMUTCPlusFive();
+    const yesterdayEnd = getYesterdayDayEnd();
 
     // Check if courierId is a valid ObjectId
     let courierExists;
@@ -110,16 +120,41 @@ exports.getTodaysActivity = async (req, res) => {
     let activity = await DailyActivity.findOne({
       courier: courierExists._id,
       date: {
-        $gte: dayStart.toDate(),
-        $lt: dayEnd.toDate()
+        $gte: yesterdayStart.toDate(),
+        $lt: yesterdayEnd.toDate()
+      },
+      day_finished: false,
+      accepted_today: true
+    });
+
+    if (activity) {
+      // If we found an activity, set unfinished to true and return it
+      activity = activity.toObject();
+      activity.unfinished = true;
+      return res.status(200).json(activity);
+    }
+
+    // If no activity found for yesterday, look for today's activity
+    const todayStart = getCurrentDayStart();
+    const todayEnd = moment(todayStart).add(1, 'day');
+
+    activity = await DailyActivity.findOne({
+      courier: courierExists._id,
+      date: {
+        $gte: todayStart.toDate(),
+        $lt: todayEnd.toDate()
       },
       day_finished: false
     });
 
     if (!activity) {
+      // If no activity found for today, create a new one
       activity = await createTodaysActivity(courierExists._id);
     }
 
+    // Convert to plain object and set unfinished to true
+    activity = activity.toObject();
+    
     res.status(200).json(activity);
   } catch (error) {
     logger.error(error);
@@ -211,7 +246,26 @@ exports.getUnacceptedCouriersForToday = async (req, res) => {
       });
 
       // If no activity found or accepted_today is not true, add to unaccepted list
-      if (!todayActivity || !todayActivity.accepted_today) {
+      if (!todayActivity) {
+        const yesterdayStart = getYesterdaySixAMUTCPlusFive();
+        const yesterdayEnd = getYesterdayDayEnd();
+    
+        let activity = await DailyActivity.findOne({
+          courier: courier._id,
+          date: {
+            $gte: yesterdayStart.toDate(),
+            $lt: yesterdayEnd.toDate()
+          },
+          day_finished: false,
+          accepted_today: true
+        });
+
+        console.log(activity);
+
+        if (!activity) {
+          unacceptedCouriers.push(courier);
+        }
+      } else if (!todayActivity.accepted_today) {
         unacceptedCouriers.push(courier);
       }
     }
