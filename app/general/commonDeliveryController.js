@@ -1,11 +1,13 @@
-const buyerActivity = require("../buyer/activity/model");
-const courierActivity = require("../courier/activity/model");
+const buyerActivityModel = require("../buyer/activity/model");
+const courierActivityModel = require("../courier/activity/model");
+
+const { logger, readLog } = require("../utils/logging");
 
 exports.getDeliveryById = async (req, res) => {
   try {
     const { deliveryId } = req.params;
-    const buyerActivity = await buyerActivity.findOne({ 'accepted._id': deliveryId });
-    const courierActivity = await buyerActivity.findOne({ 'delivered_to._id': deliveryId });
+    const buyerActivity = await buyerActivityModel.findOne({ 'accepted._id': deliveryId });
+    const courierActivity = await courierActivityModel.findOne({ 'delivered_to._id': deliveryId });
     if (!buyerActivity && courierActivity) {
       return res.status(404).json({ message: "❌ Delivery not found" });
     }
@@ -21,8 +23,8 @@ exports.getDeliveryById = async (req, res) => {
 exports.updateDeliveryById = async (req, res) => {
   try {
     const { deliveryId } = req.params;
-    const buyerActivity = await buyerActivity.findOne({ 'accepted._id': deliveryId });
-    const courierActivity = await buyerActivity.findOne({ 'delivered_to._id': deliveryId });
+    const buyerActivity = await buyerActivityModel.findOne({ 'accepted._id': deliveryId });
+    const courierActivity = await courierActivityModel.findOne({ 'delivered_to._id': deliveryId });
     if (!buyerActivity && courierActivity) {
       return res.status(404).json({ message: "❌ Delivery not found" });
     }
@@ -34,10 +36,11 @@ exports.updateDeliveryById = async (req, res) => {
     if (courierDeliveryIndex === -1) {
       return res.status(404).json({ message: "❌ Delivery not found" });
     }
-    Object.assign(buyerActivity.accepted[buyerDeliveryIndex], req.body);
-    Object.assign(courierActivity.delivered_to[courierDeliveryIndex], req.body);
-    await activity.save();
-    res.status(200).json("✅ Successfully updated!");
+    Object.assign(buyerActivity.accepted[buyerDeliveryIndex], req.body.buyerActivity);
+    Object.assign(courierActivity.delivered_to[courierDeliveryIndex], req.body.courierActivity);
+    await buyerActivity.save();
+    await courierActivity.save();
+    res.status(200).json({ message: "✅ Both activities successfully updated!" });
   } catch (error) {
     logger.error(error);
     res.status(400).json({ message: error.message });
