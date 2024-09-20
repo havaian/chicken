@@ -1,6 +1,8 @@
 const Courier = require("./model");
 const { logger, readLog } = require("../utils/logging");
 
+const redisUtils = require('../utils/redis');
+
 // Create a new courier
 exports.createCourier = async (req, res) => {
   try {
@@ -24,17 +26,19 @@ exports.getAllCouriers = async (req, res) => {
   }
 };
   
-// Get a single courier by phone number or ID (including deleted)
 exports.getCourierById = async (req, res) => {
   try {
-    const searchCriteria = {};
-    if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      searchCriteria._id = req.params.id;
-    } else {
-      searchCriteria.phone_num = req.params.id;
-    }
+    const courier = await redisUtils.getOrSetCourier(req.params.id, async () => {
+      const searchCriteria = {};
+      if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+        searchCriteria._id = req.params.id;
+      } else {
+        searchCriteria.phone_num = req.params.id;
+      }
 
-    const courier = await Courier.findOne(searchCriteria);
+      return await Courier.findOne(searchCriteria);
+    });
+
     if (!courier) {
       return res.status(404).json({ message: "❌ Courier not found" });
     }
@@ -45,7 +49,6 @@ exports.getCourierById = async (req, res) => {
   }
 };
 
-// Update a courier by phone number or ID
 exports.updateCourierById = async (req, res) => {
   try {
     const searchCriteria = {};
@@ -62,6 +65,10 @@ exports.updateCourierById = async (req, res) => {
     if (!courier) {
       return res.status(404).json({ message: "❌ Courier not found" });
     }
+
+    // Update Redis cache
+    await redisUtils.updateCourier(courier.phone_num, courier);
+
     res.status(200).json(courier);
   } catch (error) {
     logger.error(error);
@@ -69,7 +76,7 @@ exports.updateCourierById = async (req, res) => {
   }
 };
 
-// Soft delete a courier by ID (set deleted to true)
+// Remember to invalidate cache when deleting a courier
 exports.deleteCourierById = async (req, res) => {
   try {
     const courier = await Courier.findOneAndUpdate(
@@ -80,6 +87,11 @@ exports.deleteCourierById = async (req, res) => {
     if (!courier) {
       return res.status(404).json({ message: "❌ Courier not found or already deleted" });
     }
+
+    // Invalidate Redis cache
+    await redisUtils.invalidateCourier(req.params.id);
+    await redisUtils.invalidateCourierActivity(req.params.id);
+
     res.status(200).json({ message: "✅ Courier soft deleted successfully" });
   } catch (error) {
     logger.error(error);

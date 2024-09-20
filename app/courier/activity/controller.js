@@ -5,6 +5,8 @@ const ObjectId = mongoose.Types.ObjectId;
 const { logger, readLog } = require("../../utils/logging");
 const moment = require('moment-timezone');
 
+const redisUtils = require('../../utils/redis');
+
 // Function to get today's 6 a.m. in UTC+5
 const getTodaySixAMUTCPlusFive = () => {
   const timeZone = 'Asia/Tashkent'; // UTC+5
@@ -99,62 +101,69 @@ exports.getTodaysActivity = async (req, res) => {
   try {
     const { courierId } = req.params;
     
-    const yesterdayStart = getYesterdaySixAMUTCPlusFive();
-    const yesterdayEnd = getYesterdayDayEnd();
+    const activity = await redisUtils.getOrSetCourierActivity(courierId, async () => {
+      const yesterdayStart = getYesterdaySixAMUTCPlusFive();
+      const yesterdayEnd = getYesterdayDayEnd();
 
-    // Check if courierId is a valid ObjectId
-    let courierExists;
-    if (ObjectId.isValid(courierId)) {
-      courierExists = await Courier.findOne({ _id: courierId, deleted: false });
-    }
+      // Check if courierId is a valid ObjectId
+      let courierExists;
+      if (ObjectId.isValid(courierId)) {
+        courierExists = await Courier.findOne({ _id: courierId, deleted: false });
+      }
 
-    // If not found by ObjectId, try to find by phone_num
-    if (!courierExists) {
-      courierExists = await Courier.findOne({ phone_num: courierId, deleted: false });
-    }
+      // If not found by ObjectId, try to find by phone_num
+      if (!courierExists) {
+        courierExists = await Courier.findOne({ phone_num: courierId, deleted: false });
+      }
 
-    if (!courierExists) {
-      return res.status(404).json({ message: "❌ Courier not found." });
-    }
+      if (!courierExists) {
+        return null;
+      }
 
-    let activity = await DailyActivity.findOne({
-      courier: courierExists._id,
-      date: {
-        $gte: yesterdayStart.toDate(),
-        $lt: yesterdayEnd.toDate()
-      },
-      day_finished: false,
-      accepted_today: true
-    });
+      let activity = await DailyActivity.findOne({
+        courier: courierExists._id,
+        date: {
+          $gte: yesterdayStart.toDate(),
+          $lt: yesterdayEnd.toDate()
+        },
+        day_finished: false,
+        accepted_today: true
+      });
 
-    if (activity) {
-      // If we found an activity, set unfinished to true and return it
+      if (activity) {
+        activity = activity.toObject();
+        activity.unfinished = true;
+        return activity;
+      }
+
+      // If no activity found for yesterday, look for today's activity
+      const todayStart = getCurrentDayStart();
+      const todayEnd = moment(todayStart).add(1, 'day');
+
+      activity = await DailyActivity.findOne({
+        courier: courierExists._id,
+        date: {
+          $gte: todayStart.toDate(),
+          $lt: todayEnd.toDate()
+        },
+        day_finished: false
+      });
+
+      if (!activity) {
+        // If no activity found for today, create a new one
+        activity = await createTodaysActivity(courierExists._id);
+      }
+
+      // Convert to plain object
       activity = activity.toObject();
-      activity.unfinished = true;
-      return res.status(200).json(activity);
-    }
-
-    // If no activity found for yesterday, look for today's activity
-    const todayStart = getCurrentDayStart();
-    const todayEnd = moment(todayStart).add(1, 'day');
-
-    activity = await DailyActivity.findOne({
-      courier: courierExists._id,
-      date: {
-        $gte: todayStart.toDate(),
-        $lt: todayEnd.toDate()
-      },
-      day_finished: false
+      
+      return activity;
     });
 
     if (!activity) {
-      // If no activity found for today, create a new one
-      activity = await createTodaysActivity(courierExists._id);
+      return res.status(404).json({ message: "❌ Courier not found." });
     }
 
-    // Convert to plain object and set unfinished to true
-    activity = activity.toObject();
-    
     res.status(200).json(activity);
   } catch (error) {
     logger.error(error);
@@ -260,8 +269,6 @@ exports.getUnacceptedCouriersForToday = async (req, res) => {
           accepted_today: true
         });
 
-        console.log(activity);
-
         if (!activity) {
           unacceptedCouriers.push(courier);
         }
@@ -281,7 +288,6 @@ exports.getUnacceptedCouriersForToday = async (req, res) => {
   }
 };
 
-// Update an activity by ID or today's activity if no ID is provided
 exports.updateActivityById = async (req, res) => {
   try {
     let activity;
@@ -311,6 +317,10 @@ exports.updateActivityById = async (req, res) => {
         return res.status(404).json({ message: "❌ Today's activity not found" });
       }
     }
+
+    // Update Redis cache
+    await redisUtils.updateCourierActivity(activity.courier.toString(), activity);
+
     res.status(200).json(activity);
   } catch (error) {
     logger.error(error);
