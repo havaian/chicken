@@ -5,6 +5,8 @@ const ObjectId = mongoose.Types.ObjectId;
 const { logger, readLog } = require("../../utils/logging");
 const moment = require('moment-timezone');
 
+const activitiesCacheUtils = require('../../utils/redis/buyerActivity');
+
 const fs = require('fs');
 const path = require('path');
 
@@ -46,6 +48,120 @@ const getCurrentDayStart = () => {
   return now.isBefore(todaySixAM) ? todaySixAM.subtract(1, 'day') : todaySixAM;
 };
 
+// Aggregation function
+exports.aggregateAllTodaysActivities = async () => {
+  const dayStart = getCurrentDayStart();
+  const dayEnd = moment(dayStart).add(1, 'day');
+  const defaultPrices = getPrices(); // Assuming getPrices() is defined elsewhere
+
+  return await Buyer.aggregate([
+    { $match: { deleted: false } },
+    {
+      $addFields: {
+        defaultPrices: defaultPrices
+      }
+    },
+    {
+      $lookup: {
+        from: 'dailyactivitybuyers',
+        let: { buyerId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: [{ $toObjectId: '$buyer' }, '$$buyerId'] }
+            }
+          },
+          { $sort: { date: -1 } },
+          { $limit: 1 }
+        ],
+        as: 'lastActivity'
+      }
+    },
+    {
+      $addFields: {
+        activity: {
+          $cond: {
+            if: { $size: '$lastActivity' },
+            then: {
+              $let: {
+                vars: {
+                  lastAct: { $arrayElemAt: ['$lastActivity', 0] }
+                },
+                in: {
+                  $mergeObjects: [
+                    '$$lastAct',
+                    {
+                      isToday: {
+                        $and: [
+                          { $gte: ['$$lastAct.date', dayStart.toDate()] },
+                          { $lt: ['$$lastAct.date', dayEnd.toDate()] }
+                        ]
+                      },
+                      price: {
+                        $cond: {
+                          if: {
+                            $and: [
+                              { $gte: ['$$lastAct.date', dayStart.toDate()] },
+                              { $lt: ['$$lastAct.date', dayEnd.toDate()] }
+                            ]
+                          },
+                          then: '$$lastAct.price',
+                          else: '$defaultPrices'
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            else: {
+              _id: null,
+              price: '$defaultPrices',
+              buyer: '$_id',
+              debt: 0,
+              date: dayStart.toDate(),
+              isToday: true
+            }
+          }
+        }
+      }
+    },
+    {
+      $addFields: {
+        activity: {
+          $mergeObjects: [
+            '$activity',
+            { debt: { $toDouble: '$activity.debt' } }
+          ]
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        full_name: 1,
+        phone_num: 1,
+        locations: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        __v: 1,
+        deactivated: 1,
+        debt_limit: 1,
+        deleted: 1,
+        categories: 1,
+        activity: {
+          _id: 1,
+          buyer: 1,
+          date: 1,
+          debt: 1,
+          price: 1,
+          isToday: 1
+        }
+      }
+    }
+  ]);
+};
+
 // Create a new daily buyer activity
 exports.createDailyActivity = async (req, res) => {
   try {
@@ -77,6 +193,11 @@ exports.createDailyActivity = async (req, res) => {
       debt: lastActivity ? lastActivity.debt : 0
     });
     await activity.save();
+
+    // Invalidate and refresh the cache
+    await activitiesCacheUtils.invalidateCache();
+    await activitiesCacheUtils.refreshCacheIfNeeded(this.aggregateAllTodaysActivities);
+    
     res.status(201).json(activity);
   } catch (error) {
     logger.error(error);
@@ -119,122 +240,13 @@ exports.getLast30DaysActivities = async (req, res) => {
   }
 };
 
+// Get all today's activities
 exports.getAllTodaysActivities = async (req, res) => {
   try {
-    const dayStart = getCurrentDayStart();
-    const dayEnd = moment(dayStart).add(1, 'day');
-    const defaultPrices = getPrices();
-
-    const activities = await Buyer.aggregate([
-      { $match: { deleted: false } },
-      {
-        $addFields: {
-          defaultPrices: defaultPrices  // Add default prices to each document
-        }
-      },
-      {
-        $lookup: {
-          from: 'dailyactivitybuyers',
-          let: { buyerId: '$_id' },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: [{ $toObjectId: '$buyer' }, '$$buyerId'] }
-              }
-            },
-            { $sort: { date: -1 } },
-            { $limit: 1 }
-          ],
-          as: 'lastActivity'
-        }
-      },
-      {
-        $addFields: {
-          activity: {
-            $cond: {
-              if: { $size: '$lastActivity' },
-              then: {
-                $let: {
-                  vars: {
-                    lastAct: { $arrayElemAt: ['$lastActivity', 0] }
-                  },
-                  in: {
-                    $mergeObjects: [
-                      '$$lastAct',
-                      {
-                        isToday: {
-                          $and: [
-                            { $gte: ['$$lastAct.date', dayStart.toDate()] },
-                            { $lt: ['$$lastAct.date', dayEnd.toDate()] }
-                          ]
-                        },
-                        price: {
-                          $cond: {
-                            if: {
-                              $and: [
-                                { $gte: ['$$lastAct.date', dayStart.toDate()] },
-                                { $lt: ['$$lastAct.date', dayEnd.toDate()] }
-                              ]
-                            },
-                            then: '$$lastAct.price',
-                            else: '$defaultPrices'
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              else: {
-                _id: null,
-                price: '$defaultPrices',
-                buyer: '$_id',
-                debt: 0,
-                date: dayStart.toDate(),
-                isToday: true
-              }
-            }
-          }
-        }
-      },
-      {
-        $addFields: {
-          activity: {
-            $mergeObjects: [
-              '$activity',
-              { debt: { $toDouble: '$activity.debt' } }
-            ]
-          }
-        }
-      },
-      {
-        $project: {
-          _id: 1,
-          full_name: 1,
-          phone_num: 1,
-          locations: 1,
-          createdAt: 1,
-          updatedAt: 1,
-          __v: 1,
-          deactivated: 1,
-          debt_limit: 1,
-          deleted: 1,
-          categories: 1,
-          activity: {
-            _id: 1,
-            buyer: 1,
-            date: 1,
-            debt: 1,
-            price: 1,
-            isToday: 1
-          }
-        }
-      }
-    ]);
-
+    const activities = await activitiesCacheUtils.getOrSetAllTodaysActivities(this.aggregateAllTodaysActivities);
     res.status(200).json(activities);
   } catch (error) {
-    logger.error(error);
+    logger.error('Error retrieving all today\'s activities:', error);
     res.status(500).json({ message: "❌ Error retrieving activities for all buyers", error: error.message });
   }
 };
@@ -261,6 +273,10 @@ exports.updateAllTodaysActivitiesPrices = async (req, res) => {
     );
 
     logger.info(`Updated ${result.modifiedCount} activities with new price data`);
+
+    // Invalidate and refresh the cache
+    await activitiesCacheUtils.invalidateCache();
+    await activitiesCacheUtils.refreshCacheIfNeeded(this.aggregateAllTodaysActivities);
 
     res.status(200).json({
       message: `✅ Successfully updated ${result.modifiedCount} activities with new price data`,
@@ -399,8 +415,13 @@ exports.updateActivityById = async (req, res) => {
       );
       if (!activity) {
         return res.status(404).json({ message: "❌ Today's activity not found" });
-      }
+      } 
     }
+
+    // Invalidate and refresh the cache
+    await activitiesCacheUtils.invalidateCache();
+    await activitiesCacheUtils.refreshCacheIfNeeded(this.aggregateAllTodaysActivities);
+
     res.status(200).json(activity);
   } catch (error) {
     logger.error(error);

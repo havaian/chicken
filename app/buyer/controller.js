@@ -3,11 +3,20 @@ const { logger, readLog } = require("../utils/logging");
 
 const mongoose = require("mongoose");
 
+const activitiesCacheUtils = require('../utils/redis/buyerActivity');
+
+const { aggregateAllTodaysActivities } = require('./activity/controller');
+
 // Create a new buyer
 exports.createBuyer = async (req, res) => {
   try {
     const buyer = new Buyer(req.body);
     await buyer.save();
+
+    // Invalidate and refresh the cache
+    await activitiesCacheUtils.invalidateCache();
+    await activitiesCacheUtils.refreshCacheIfNeeded(aggregateAllTodaysActivities);
+
     res.status(201).json(buyer);
   } catch (error) {
     logger.error(error);
@@ -94,6 +103,11 @@ exports.updateBuyerById = async (req, res) => {
     if (!buyer) {
       return res.status(404).json({ message: "❌ Buyer not found" });
     }
+
+    // Invalidate and refresh the cache
+    await activitiesCacheUtils.invalidateCache();
+    await activitiesCacheUtils.refreshCacheIfNeeded(aggregateAllTodaysActivities);
+
     res.status(200).json(buyer);
   } catch (error) {
     logger.error(error);
@@ -112,6 +126,11 @@ exports.deleteBuyerById = async (req, res) => {
     if (!buyer) {
       return res.status(404).json({ message: "❌ Buyer not found or already deleted" });
     }
+
+    // Invalidate and refresh the cache
+    await activitiesCacheUtils.invalidateCache();
+    await activitiesCacheUtils.refreshCacheIfNeeded(aggregateAllTodaysActivities);
+    
     res.status(200).json({ message: "✅ Buyer soft deleted successfully" });
   } catch (error) {
     logger.error(error);

@@ -1,7 +1,7 @@
 const Courier = require("./model");
 const { logger, readLog } = require("../utils/logging");
 
-const redisUtils = require('../utils/redis');
+const redisUtils = require('../utils/redis/courierActivity');
 
 // Create a new courier
 exports.createCourier = async (req, res) => {

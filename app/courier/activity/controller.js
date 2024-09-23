@@ -5,7 +5,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const { logger, readLog } = require("../../utils/logging");
 const moment = require('moment-timezone');
 
-const redisUtils = require('../../utils/redis');
+const redisUtils = require('../../utils/redis/courierActivity');
 
 // Function to get today's 6 a.m. in UTC+5
 const getTodaySixAMUTCPlusFive = () => {
@@ -101,7 +101,7 @@ exports.getTodaysActivity = async (req, res) => {
   try {
     const { courierId } = req.params;
     
-    const activity = await redisUtils.getOrSetCourierActivity(courierId, async () => {
+    const activity = await redisUtils.getOrSetCourierActivityWithConditions(courierId, async () => {
       const yesterdayStart = getYesterdaySixAMUTCPlusFive();
       const yesterdayEnd = getYesterdayDayEnd();
 
@@ -155,9 +155,7 @@ exports.getTodaysActivity = async (req, res) => {
       }
 
       // Convert to plain object
-      activity = activity.toObject();
-      
-      return activity;
+      return activity.toObject();
     });
 
     if (!activity) {
