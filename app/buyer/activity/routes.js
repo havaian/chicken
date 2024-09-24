@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const activityController = require("./controller");
+const reportRoutes = require("./report/routes");
+
+// Use activity routes
+router.use("/report", reportRoutes);
 
 // Create a new daily buyer activity
 router.post("/new/", activityController.createDailyActivity);

@@ -1,4 +1,5 @@
 const express = require("express");
+const compression = require("compression");
 const bodyParser = require("body-parser");
 const buyerRoutes = require("./buyer/routes");
 const courierRoutes = require("./courier/routes");
@@ -9,6 +10,10 @@ const generalRoutes = require("./general/routes");
 const { logger, readLog } = require("./utils/logging");
 
 const app = express();
+
+// Add compression middleware
+app.use(compression());
+
 app.use(bodyParser.json());
 
 const morgan = require("morgan");
