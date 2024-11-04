@@ -1,6 +1,7 @@
 # Data files
 /app/data
 /app/uploads
+/app/buyer/activity/report/reports
 
 # Generated documents 
 documents
