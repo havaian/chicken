@@ -1,5 +1,6 @@
 # Data files
 /app/data
+/app/uploads
 
 # Generated documents 
 documents

@@ -6,7 +6,9 @@ const Buyer = require("../../model");
 const DailyBuyerActivity = require("../model");
 const { logger } = require('../../../utils/logging');
 
-const REPORTS_DIR = path.join(__dirname, './reports/buyer');
+const REPORTS_DIR = path.join(__dirname, './reports/buyer/monthly_report');
+
+const ReportMetadata = require('./model');
 
 async function ensureReportsDirectory() {
   try {
@@ -17,16 +19,10 @@ async function ensureReportsDirectory() {
 }
 
 async function generateAndSaveReport(year, month) {
-  const fileName = `monthly_report_${year}_${month}.xlsx`;
+  const fileName = `${year}_${month}.xlsx`;
   const filePath = path.join(REPORTS_DIR, fileName);
 
-  // Check if the file already exists
-  try {
-    await fs.access(filePath);
-    return filePath; // File exists, return the path
-  } catch (error) {
-    // File doesn't exist, generate it
-  }
+  const actualFilePath = path.join("./chicken-bot/reports/buyer/monthly_report", fileName);
 
   const startDate = moment.tz(`${year}-${month}-01`, "Asia/Tashkent").startOf('month');
   const endDate = moment(startDate).endOf('month');
@@ -47,47 +43,73 @@ async function generateAndSaveReport(year, month) {
   const worksheet = workbook.addWorksheet('Monthly Report');
 
   // Set up the headers
-  worksheet.columns = [
-    { header: 'Mijoz', key: 'buyer', width: 30 },
-    ...Array.from({ length: endDate.date() }, (_, i) => ({
-      header: i + 1,
-      key: `day${i + 1}`,
-      width: 20
-    }))
-  ];
+  const headers = ['Mijoz', ...Array.from({ length: endDate.date() }, (_, i) => `${i + 1 > 9 ? i + 1 : "0" + (i + 1).toString()}.${month}.${year}`)];
+  worksheet.addRow(headers);
 
-  // Add buyer rows
-  buyers.forEach(buyer => {
-    worksheet.addRow({ buyer: buyer.full_name });
+  // Add buyer rows and create a map of buyer names to row numbers
+  const buyerRowMap = new Map();
+  buyers.forEach((buyer, index) => {
+    const rowNumber = index + 2; // +2 because Excel is 1-indexed and we have a header row
+    worksheet.addRow([buyer.full_name]);
+    buyerRowMap.set(buyer.full_name, rowNumber);
   });
+
+  // Set column widths
+  worksheet.getColumn(1).width = 30;
+  for (let i = 2; i <= headers.length; i++) {
+    worksheet.getColumn(i).width = 20;
+  }
 
   // Fill in the activities
   activities.forEach(activity => {
-    const rowIndex = worksheet.getColumn('A').values.findIndex(v => v === activity.buyer.full_name);
-    if (rowIndex > 0) {
+    const rowNumber = buyerRowMap.get(activity.buyer.full_name);
+    if (rowNumber) {
       const day = moment(activity.date).date();
-      const columnKey = `day${day}`;
+      const columnNumber = day + 1; // +1 because the first column is for buyer names
       
       let cellContent = '';
-      activity.accepted.forEach(acceptance => {
-        acceptance.eggs.forEach(egg => {
-          if (egg.amount > 0) {
-            cellContent += `${egg.category}: ${egg.amount}\n`;
+      if (Array.isArray(activity.accepted) && activity.accepted.length > 0) {
+        activity.accepted.forEach((acceptance, index) => {
+          if (index > 0) {
+            cellContent += "\n=================\n";
           }
+          if (Array.isArray(acceptance.eggs)) {
+            acceptance.eggs.forEach(egg => {
+              if (egg.amount > 0) {
+                cellContent += `${egg.category}: ${egg.amount}\n`;
+              }
+            });
+          }
+          cellContent += `To'lov: ${acceptance.payment || 0}\n`;
+          cellContent += `Qarz: ${acceptance.debt || 0}\n`;
         });
-      });
-      
-      const lastAcceptance = activity.accepted[activity.accepted.length - 1];
-      cellContent += `Payment: ${lastAcceptance.payment}\n`;
-      cellContent += `Debt: ${lastAcceptance.debt}`;
+      } else {
+        
+      }
 
-      worksheet.getCell(`${columnKey}${rowIndex}`).value = cellContent;
-      worksheet.getCell(`${columnKey}${rowIndex}`).alignment = { wrapText: true };
+      const cell = worksheet.getCell(rowNumber, columnNumber);
+      cell.value = cellContent;
+      cell.alignment = { wrapText: true };
     }
   });
 
   // Save the workbook
   await workbook.xlsx.writeFile(filePath);
+
+  const lastDataUpdate = await DailyBuyerActivity.findOne({
+    date: { $gte: startDate.toDate(), $lte: endDate.toDate() }
+  }).sort('-lastModified');
+
+  await ReportMetadata.findOneAndUpdate(
+    { year, month },
+    { 
+      lastGenerated: new Date(),
+      lastDataUpdate: lastDataUpdate ? lastDataUpdate.lastModified : new Date(),
+      filePath,
+      actualFilePath
+    },
+    { upsert: true, new: true }
+  );
 
   return filePath;
 }
