@@ -7,7 +7,6 @@ const warehouseRoutes = require("./warehouse/routes");
 const importerRoutes = require("./importer/routes");
 const generalRoutes = require("./general/routes");
 const excelRoutes = require("./excel/routes");
-const inventoryRoutes = require("./inventory/routes");
 // const adminRoutes = require("./admin/routes");
 const { logger, readLog } = require("./utils/logging");
 
@@ -130,7 +129,6 @@ app.use("/warehouse", warehouseRoutes);
 app.use("/importer", importerRoutes);
 app.use("/general", generalRoutes);
 app.use("/excel", excelRoutes);
-app.use("/inventory", inventoryRoutes);
 // app.use("/admin", adminRoutes);
 app.use(require("./routes"));
 
