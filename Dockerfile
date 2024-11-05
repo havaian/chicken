@@ -26,5 +26,5 @@ COPY . ./
 ENV TZ="Asia/Tashkent"
 
 # Run start command
-CMD ["npm", "run", "build"]
-# CMD ["npm", "run", "dev"]
+# CMD ["npm", "run", "build"]
+CMD ["npm", "run", "dev"]

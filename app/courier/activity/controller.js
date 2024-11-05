@@ -216,7 +216,7 @@ exports.getTodaysAcceptedUnfinishedActivities = async (req, res) => {
       },
       accepted_today: true,
       day_finished: false
-    }).populate('courier', 'full_name phone_num');
+    }).populate('courier', 'full_name phone_num car_num');
 
     if (activities.length === 0) {
       return res.status(404).json({ message: "❌ No accepted and unfinished activities found for today."});

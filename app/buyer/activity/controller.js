@@ -10,7 +10,7 @@ const activitiesCacheUtils = require('../../utils/redis/buyerActivity');
 const fs = require('fs');
 const path = require('path');
 
-const getPrices = () => {
+exports.getPrices = () => {
   try {
     const pricesPath = path.join(__dirname, '../../data/prices.js');
     const data = fs.readFileSync(pricesPath, 'utf8');
@@ -29,7 +29,7 @@ const getPrices = () => {
     logger.info('Failed to extract valid prices from file');
     return null;
   } catch (error) {
-    logger.info('Error reading prices file:', error);
+    logger.error('Error reading prices file:', error);
     return null;
   }
 };
@@ -52,7 +52,7 @@ const getCurrentDayStart = () => {
 exports.aggregateAllTodaysActivities = async () => {
   const dayStart = getCurrentDayStart();
   const dayEnd = moment(dayStart).add(1, 'day');
-  const defaultPrices = getPrices(); // Assuming getPrices() is defined elsewhere
+  const defaultPrices = this.getPrices(); // Assuming getPrices() is defined elsewhere
 
   return await Buyer.aggregate([
     { $match: { deleted: false } },
@@ -335,7 +335,7 @@ const createTodaysActivity = async (buyerId) => {
     buyer: buyerId,
   }).sort({ date: -1 });
 
-  const prices = getPrices();
+  const prices = this.getPrices();
 
   const todayActivity = new DailyBuyerActivity({
     buyer: buyerId,

@@ -1,50 +1,68 @@
 const mongoose = require("mongoose");
 
-const dailyBuyerActivitySchema = new mongoose.Schema(
-  {
-    buyer: {
-      type: String,
-      ref: "Buyer",
-      required: true,
-    },
-    date: {
-      type: Date,
-      required: true,
-    },
-    debt: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    accepted: [{
-      _id: { type: String, required: true },
-      courier: {
-        _id: String,
-        full_name: String,
-        phone_num: String,
-        car_num: String
-      },
-      eggs: [{
-        category: String,
-        amount: Number,
-        price: Number
-      }],
-      payment: Number,
-      debt: Number,
-      time: String
-    }],
-    price: {
-      type: Object,
-      required: true,
-      default: {},
-    }
+const dailyBuyerActivitySchema = new mongoose.Schema({
+  buyer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Buyer",
+    required: true,
   },
-  {
-    timestamps: true,
-    strict: true,
-    strictQuery: false,
+  date: {
+    type: Date,
+    required: true,
+  },
+  debt: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  accepted: [{
+    _id: { type: String, required: true },
+    courier: {
+      _id: String,
+      full_name: String,
+      phone_num: String,
+      car_num: String
+    },
+    items: [{
+      category: {
+        _id: String,
+        name: String,
+      },
+      subcategory: {
+        _id: String,
+        name: String,
+      },
+      item: {
+        _id: String,
+        name: String,
+      },
+      amount: Number,
+      price: Number,
+      _id: false
+    }],
+    payment: Number,
+    debt: Number,
+    time: String
+  }],
+  prices: {
+    type: Map,
+    of: Number,
+    default: {},
+  },
+  lastModified: { 
+    type: Date, 
+    default: Date.now 
   }
-);
+}, {
+  timestamps: true,
+  strict: true,
+  strictQuery: false,
+});
+
+dailyBuyerActivitySchema.pre('save', function(next) {
+  this.lastModified = new Date();
+  next();
+});
 
 const DailyBuyerActivity = mongoose.model(
   "DailyActivityBuyer",
