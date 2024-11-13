@@ -208,7 +208,7 @@ class ExcelController {
   }
 
   createBuyerActivity(id, deliveries) {
-    const eggs = deliveries.map(item => ({
+    const items = deliveries.map(item => ({
       category: item.category,
       amount: this.parseNumericValue(item.amount),
       price: this.parseNumericValue(item.price),
@@ -220,7 +220,7 @@ class ExcelController {
 
     return {
       _id: id,
-      eggs: eggs,
+      items: items,
       payment: payment,
       debt: debt,
       time: new Date().toLocaleString() // Assuming current time as it's not in the Excel
@@ -228,7 +228,7 @@ class ExcelController {
   }
 
   createCourierActivity(id, deliveries) {
-    const eggs = deliveries.map(item => ({
+    const items = deliveries.map(item => ({
       category: item.category,
       amount: this.parseNumericValue(item.amount),
       price: this.parseNumericValue(item.price),
@@ -240,7 +240,7 @@ class ExcelController {
 
     return {
       _id: id,
-      eggs: eggs,
+      items: items,
       payment: payment,
       debt: debt,
       time: new Date().toLocaleString() // Assuming current time as it's not in the Excel

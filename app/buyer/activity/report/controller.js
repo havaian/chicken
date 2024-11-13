@@ -73,10 +73,10 @@ async function generateAndSaveReport(year, month) {
           if (index > 0) {
             cellContent += "\n=================\n";
           }
-          if (Array.isArray(acceptance.eggs)) {
-            acceptance.eggs.forEach(egg => {
-              if (egg.amount > 0) {
-                cellContent += `${egg.category}: ${egg.amount}\n`;
+          if (Array.isArray(acceptance.items)) {
+            acceptance.items.forEach(item => {
+              if (item.amount > 0) {
+                cellContent += `${item.category}: ${item.amount}\n`;
               }
             });
           }
