@@ -28,7 +28,6 @@ const dailyBuyerActivitySchema = new mongoose.Schema({
         _id: String,
         name: String,
       },
-<<<<<<< Updated upstream
       subcategory: {
         _id: String,
         name: String,
@@ -40,16 +39,6 @@ const dailyBuyerActivitySchema = new mongoose.Schema({
       amount: Number,
       price: Number,
       _id: false
-=======
-      items: [{
-        category: String,
-        amount: Number,
-        price: Number
-      }],
-      payment: Number,
-      debt: Number,
-      time: String
->>>>>>> Stashed changes
     }],
     payment: Number,
     debt: Number,
