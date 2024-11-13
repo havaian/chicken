@@ -34,6 +34,8 @@ const getPrices = () => {
   }
 };
 
+exports.getPrices = getPrices;
+
 // Function to get today's 6 a.m. in UTC+5
 const getTodaySixAMUTCPlusFive = () => {
   const timeZone = 'Asia/Tashkent'; // UTC+5
